@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   username: string;
-  role: "SUPER_USER" | "EDITOR" | "VIEW";
+  role: "SUPER_USER" | "EDITOR" | "VIEWER";
   createdAt: Date;
   updatedAt: Date;
 }
