@@ -13,7 +13,6 @@ export async function seedDatabase() {
   try {
     console.log("🌱 Starting database seed...");
 
-    // Create default super user
     const hashedPassword = await bcrypt.hash("admin123", 10);
 
     const [superUser] = await db
