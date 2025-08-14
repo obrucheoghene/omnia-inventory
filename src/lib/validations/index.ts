@@ -53,6 +53,68 @@ export const updateMaterialSchema = createMaterialSchema.partial().extend({
   id: z.uuid(),
 });
 
+export const createInflowSchema = z.object({
+  materialId: z.uuid("Please select a material"),
+  unitId: z.uuid("Please select a unit"),
+  projectId: z.uuid("Please select a project"),
+  quantity: z
+    .string()
+    .min(1, "Quantity is required")
+    .transform((val) => parseFloat(val)),
+  unitPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined)),
+  deliveryDate: z.string().min(1, "Delivery date is required"),
+  receivedBy: z
+    .string()
+    .min(1, "Received by is required")
+    .max(255, "Name too long"),
+  supplierName: z
+    .string()
+    .min(1, "Supplier name is required")
+    .max(255, "Name too long"),
+  purpose: z.string().min(1, "Purpose is required"),
+  batchNumber: z.string().max(100, "Batch number too long").optional(),
+  expiryDate: z.string().optional(),
+  supportDocument: z.string().optional(), // File URL will be stored here
+});
+
+export const updateInflowSchema = createInflowSchema.partial().extend({
+  id: z.uuid(),
+});
+
+// Outflow validation schema
+export const createOutflowSchema = z.object({
+  materialId: z.uuid("Please select a material"),
+  unitId: z.uuid("Please select a unit"),
+  projectId: z.uuid("Please select a project"),
+  quantity: z
+    .string()
+    .min(1, "Quantity is required")
+    .transform((val) => parseFloat(val)),
+  unitPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined)),
+  releaseDate: z.string().min(1, "Release date is required"),
+  authorizedBy: z
+    .string()
+    .min(1, "Authorized by is required")
+    .max(255, "Name too long"),
+  receivedBy: z
+    .string()
+    .min(1, "Received by is required")
+    .max(255, "Name too long"),
+  purpose: z.string().min(1, "Purpose is required"),
+  returnDate: z.string().optional(),
+  supportDocument: z.string().optional(), // File URL will be stored here
+});
+
+export const updateOutflowSchema = createOutflowSchema.partial().extend({
+  id: z.uuid(),
+});
+
 // Infer types
 export type CreateProject = z.infer<typeof createProjectSchema>;
 export type UpdateProject = z.infer<typeof updateProjectSchema>;
@@ -62,3 +124,7 @@ export type CreateUnit = z.infer<typeof createUnitSchema>;
 export type UpdateUnit = z.infer<typeof updateUnitSchema>;
 export type CreateMaterial = z.infer<typeof createMaterialSchema>;
 export type UpdateMaterial = z.infer<typeof updateMaterialSchema>;
+export type CreateInflow = z.infer<typeof createInflowSchema>;
+export type UpdateInflow = z.infer<typeof updateInflowSchema>;
+export type CreateOutflow = z.infer<typeof createOutflowSchema>;
+export type UpdateOutflow = z.infer<typeof updateOutflowSchema>;
