@@ -136,7 +136,7 @@ export const inflows = pgTable("inflows", {
   receivedBy: varchar("received_by", { length: 255 }).notNull(),
   supplierName: varchar("supplier_name", { length: 255 }).notNull(),
   purpose: text("purpose").notNull(),
-  supportDocument: varchar("support_document", { length: 500 }), // File path/URL
+  supportDocument: varchar("support_document", { length: 500 }),
   batchNumber: varchar("batch_number", { length: 100 }),
   expiryDate: timestamp("expiry_date", { withTimezone: true }),
   createdBy: uuid("created_by")
@@ -169,8 +169,8 @@ export const outflows = pgTable("outflows", {
   authorizedBy: varchar("authorized_by", { length: 255 }).notNull(),
   receivedBy: varchar("received_by", { length: 255 }).notNull(),
   purpose: text("purpose").notNull(),
-  supportDocument: varchar("support_document", { length: 500 }), // File path/URL
-  returnDate: timestamp("return_date", { withTimezone: true }), // For returnable items
+  supportDocument: varchar("support_document", { length: 500 }),
+  returnDate: timestamp("return_date", { withTimezone: true }),
   isReturned: boolean("is_returned").notNull().default(false),
   createdBy: uuid("created_by")
     .notNull()

@@ -53,18 +53,13 @@ export const updateMaterialSchema = createMaterialSchema.partial().extend({
   id: z.uuid(),
 });
 
+// Inflow validation schema with proper number handling
 export const createInflowSchema = z.object({
   materialId: z.uuid("Please select a material"),
   unitId: z.uuid("Please select a unit"),
   projectId: z.uuid("Please select a project"),
-  quantity: z
-    .string()
-    .min(1, "Quantity is required")
-    .transform((val) => parseFloat(val)),
-  unitPrice: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseFloat(val) : undefined)),
+  quantity: z.number().min(0.01, "Quantity must be greater than 0"),
+  unitPrice: z.number().min(0, "Unit price must be non-negative").optional(),
   deliveryDate: z.string().min(1, "Delivery date is required"),
   receivedBy: z
     .string()
@@ -77,7 +72,7 @@ export const createInflowSchema = z.object({
   purpose: z.string().min(1, "Purpose is required"),
   batchNumber: z.string().max(100, "Batch number too long").optional(),
   expiryDate: z.string().optional(),
-  supportDocument: z.string().optional(), // File URL will be stored here
+  supportDocument: z.string().optional(),
 });
 
 export const updateInflowSchema = createInflowSchema.partial().extend({
@@ -89,14 +84,8 @@ export const createOutflowSchema = z.object({
   materialId: z.uuid("Please select a material"),
   unitId: z.uuid("Please select a unit"),
   projectId: z.uuid("Please select a project"),
-  quantity: z
-    .string()
-    .min(1, "Quantity is required")
-    .transform((val) => parseFloat(val)),
-  unitPrice: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseFloat(val) : undefined)),
+  quantity: z.number().min(0.01, "Quantity must be greater than 0"),
+  unitPrice: z.number().min(0, "Unit price must be non-negative").optional(),
   releaseDate: z.string().min(1, "Release date is required"),
   authorizedBy: z
     .string()
@@ -108,7 +97,7 @@ export const createOutflowSchema = z.object({
     .max(255, "Name too long"),
   purpose: z.string().min(1, "Purpose is required"),
   returnDate: z.string().optional(),
-  supportDocument: z.string().optional(), // File URL will be stored here
+  supportDocument: z.string().optional(),
 });
 
 export const updateOutflowSchema = createOutflowSchema.partial().extend({
