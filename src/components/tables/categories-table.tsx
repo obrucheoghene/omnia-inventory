@@ -361,7 +361,7 @@ export default function CategoriesTable() {
                     <div className="text-sm">No categories found.</div>
                     {canEdit && (
                       <div className="text-xs mt-1">
-                        Click ${`"Add Category"`} to create your first category.
+                        Click {`"Add Category"`} to create your first category.
                       </div>
                     )}
                   </div>

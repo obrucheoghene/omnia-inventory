@@ -43,9 +43,10 @@ export const createMaterialSchema = z.object({
   description: z.string().optional(),
   categoryId: z.uuid("Please select a category"),
   minStockLevel: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseFloat(val) : 0)),
+    .number()
+    .min(0, "Minimum stock level must be non-negative")
+    .default(0),
+
   unitIds: z.array(z.uuid()).min(1, "Please select at least one unit"),
 });
 

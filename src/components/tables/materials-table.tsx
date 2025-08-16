@@ -33,6 +33,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   MoreHorizontal,
@@ -42,55 +49,73 @@ import {
   ArrowUpDown,
   ChevronDown,
   Settings2,
+  Package,
+  Tag,
 } from "lucide-react";
-import { useProjects, useDeleteProject } from "@/hooks/use-projects";
-import { Project } from "@/lib/db/schema";
-import { canManageInventory } from "@/lib/auth/permissions"; // Use helper function
+import { useMaterials, useDeleteMaterial } from "@/hooks/use-materials";
+import { useCategories } from "@/hooks/use-categories";
+import { Material } from "@/lib/db/schema";
+import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
-import ProjectForm from "@/components/forms/project-form";
+import MaterialForm from "@/components/forms/material-form";
 import { formatDate } from "@/lib/utils";
 
-export default function ProjectsTable() {
+export default function MaterialsTable() {
   const { data: session } = useSession();
-  const { data: projects, isLoading, error } = useProjects();
-  const deleteProject = useDeleteProject();
+  const { data: materials, isLoading, error } = useMaterials();
+  const { data: categories } = useCategories();
+  const deleteMaterial = useDeleteMaterial();
 
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
+    null
+  );
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // Table state
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  // Fix: Use helper function instead of hasPermission with array
   const canEdit = canManageInventory(session?.user?.role as UserRole);
 
   const handleCreate = () => {
-    setSelectedProject(null);
+    setSelectedMaterial(null);
     setFormMode("create");
     setFormOpen(true);
   };
 
-  const handleEdit = (project: Project) => {
-    setSelectedProject(project);
+  const handleEdit = (material: Material) => {
+    setSelectedMaterial(material);
     setFormMode("edit");
     setFormOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this project?")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this material? This will also affect any inventory records using this material."
+      )
+    ) {
       try {
-        await deleteProject.mutateAsync(id);
+        await deleteMaterial.mutateAsync(id);
       } catch (error) {
-        console.error("Error deleting project:", error);
+        console.error("Error deleting material:", error);
       }
     }
   };
 
+  // Filter materials by category
+  const filteredData =
+    materials?.filter((material) =>
+      selectedCategory === "all"
+        ? true
+        : material.categoryId === selectedCategory
+    ) || [];
+
   // Column definitions
-  const columns: ColumnDef<Project>[] = [
+  const columns: ColumnDef<Material>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -100,13 +125,26 @@ export default function ProjectsTable() {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-8 px-2"
           >
-            Name
+            Material Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
+        <div className="flex items-center space-x-2">
+          <Package className="h-4 w-4 text-gray-400" />
+          <span className="font-medium">{row.getValue("name")}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "categoryName",
+      header: "Category",
+      cell: ({ row }) => (
+        <div className="flex items-center space-x-2">
+          <Tag className="h-3 w-3 text-muted-foreground" />
+          <span className="text-sm">{row.getValue("categoryName")}</span>
+        </div>
       ),
     },
     {
@@ -127,6 +165,31 @@ export default function ProjectsTable() {
                 No description
               </span>
             )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "minStockLevel",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-8 px-2"
+          >
+            Min Stock Level
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const minLevel = row.getValue("minStockLevel") as string | null;
+        return (
+          <div className="text-sm">
+            {minLevel && parseFloat(minLevel) > 0
+              ? parseFloat(minLevel).toLocaleString()
+              : "Not set"}
           </div>
         );
       },
@@ -159,7 +222,7 @@ export default function ProjectsTable() {
       },
       cell: ({ row }) => {
         const date = new Date(row.getValue("createdAt"));
-        return <div>{formatDate(date)}</div>;
+        return <div className="text-sm">{formatDate(date)}</div>;
       },
     },
   ];
@@ -170,7 +233,7 @@ export default function ProjectsTable() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const project = row.original;
+        const material = row.original;
 
         return (
           <DropdownMenu>
@@ -183,12 +246,12 @@ export default function ProjectsTable() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleEdit(project)}>
+              <DropdownMenuItem onClick={() => handleEdit(material)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDelete(project.id)}
+                onClick={() => handleDelete(material.id)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -202,7 +265,7 @@ export default function ProjectsTable() {
   }
 
   const table = useReactTable({
-    data: projects || [],
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -221,7 +284,9 @@ export default function ProjectsTable() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-sm text-muted-foreground">Loading projects...</div>
+        <div className="text-sm text-muted-foreground">
+          Loading materials...
+        </div>
       </div>
     );
   }
@@ -230,7 +295,7 @@ export default function ProjectsTable() {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-sm text-red-600">
-          Error loading projects: {error.message}
+          Error loading materials: {error.message}
         </div>
       </div>
     );
@@ -241,15 +306,18 @@ export default function ProjectsTable() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Package className="h-6 w-6 text-blue-600" />
+            Materials Management
+          </h2>
           <p className="text-muted-foreground">
-            Manage your construction projects
+            Manage your construction materials and inventory items
           </p>
         </div>
         {canEdit && (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Project
+            Add Material
           </Button>
         )}
       </div>
@@ -258,14 +326,29 @@ export default function ProjectsTable() {
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
           <Input
-            placeholder="Filter projects..."
+            placeholder="Filter materials..."
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
+
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {categories?.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+
         <div className="flex items-center space-x-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -349,10 +432,11 @@ export default function ProjectsTable() {
                   className="h-24 text-center"
                 >
                   <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                    <div className="text-sm">No projects found.</div>
+                    <Package className="h-12 w-12 mb-4 opacity-50" />
+                    <div className="text-sm">No materials found.</div>
                     {canEdit && (
                       <div className="text-xs mt-1">
-                        Click {`"Add Project"`} to create your first project.
+                        Click {`"Add Material"`} to create your first material.
                       </div>
                     )}
                   </div>
@@ -366,7 +450,7 @@ export default function ProjectsTable() {
       {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} project(s) total.
+          {table.getFilteredRowModel().rows.length} material(s) total.
         </div>
         <div className="space-x-2">
           <Button
@@ -389,10 +473,10 @@ export default function ProjectsTable() {
       </div>
 
       {/* Form Modal */}
-      <ProjectForm
+      <MaterialForm
         open={formOpen}
         onOpenChange={setFormOpen}
-        project={selectedProject}
+        material={selectedMaterial}
         mode={formMode}
       />
     </div>

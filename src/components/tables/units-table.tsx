@@ -42,20 +42,21 @@ import {
   ArrowUpDown,
   ChevronDown,
   Settings2,
+  Ruler,
 } from "lucide-react";
-import { useProjects, useDeleteProject } from "@/hooks/use-projects";
-import { Project } from "@/lib/db/schema";
-import { canManageInventory } from "@/lib/auth/permissions"; // Use helper function
+import { useUnits, useDeleteUnit } from "@/hooks/use-units";
+import { Unit } from "@/lib/db/schema";
+import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
-import ProjectForm from "@/components/forms/project-form";
+import UnitForm from "@/components/forms/unit-form";
 import { formatDate } from "@/lib/utils";
 
-export default function ProjectsTable() {
+export default function UnitsTable() {
   const { data: session } = useSession();
-  const { data: projects, isLoading, error } = useProjects();
-  const deleteProject = useDeleteProject();
+  const { data: units, isLoading, error } = useUnits();
+  const deleteUnit = useDeleteUnit();
 
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
 
@@ -64,33 +65,36 @@ export default function ProjectsTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  // Fix: Use helper function instead of hasPermission with array
   const canEdit = canManageInventory(session?.user?.role as UserRole);
 
   const handleCreate = () => {
-    setSelectedProject(null);
+    setSelectedUnit(null);
     setFormMode("create");
     setFormOpen(true);
   };
 
-  const handleEdit = (project: Project) => {
-    setSelectedProject(project);
+  const handleEdit = (unit: Unit) => {
+    setSelectedUnit(unit);
     setFormMode("edit");
     setFormOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this project?")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this unit? This will also affect any materials using this unit."
+      )
+    ) {
       try {
-        await deleteProject.mutateAsync(id);
+        await deleteUnit.mutateAsync(id);
       } catch (error) {
-        console.error("Error deleting project:", error);
+        console.error("Error deleting unit:", error);
       }
     }
   };
 
   // Column definitions
-  const columns: ColumnDef<Project>[] = [
+  const columns: ColumnDef<Unit>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -100,14 +104,37 @@ export default function ProjectsTable() {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-8 px-2"
           >
-            Name
+            Unit Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
+        <div className="flex items-center space-x-2">
+          <Ruler className="h-4 w-4 text-gray-400" />
+          <span className="font-medium">{row.getValue("name")}</span>
+        </div>
       ),
+    },
+    {
+      accessorKey: "abbreviation",
+      header: "Abbreviation",
+      cell: ({ row }) => {
+        const abbreviation = row.getValue("abbreviation") as string | null;
+        return (
+          <div className="text-sm">
+            {abbreviation ? (
+              <Badge variant="outline" className="font-mono">
+                {abbreviation}
+              </Badge>
+            ) : (
+              <span className="text-muted-foreground italic">
+                No abbreviation
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "description",
@@ -159,7 +186,7 @@ export default function ProjectsTable() {
       },
       cell: ({ row }) => {
         const date = new Date(row.getValue("createdAt"));
-        return <div>{formatDate(date)}</div>;
+        return <div className="text-sm">{formatDate(date)}</div>;
       },
     },
   ];
@@ -170,7 +197,7 @@ export default function ProjectsTable() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const project = row.original;
+        const unit = row.original;
 
         return (
           <DropdownMenu>
@@ -183,12 +210,12 @@ export default function ProjectsTable() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleEdit(project)}>
+              <DropdownMenuItem onClick={() => handleEdit(unit)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDelete(project.id)}
+                onClick={() => handleDelete(unit.id)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -202,7 +229,7 @@ export default function ProjectsTable() {
   }
 
   const table = useReactTable({
-    data: projects || [],
+    data: units || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -221,7 +248,7 @@ export default function ProjectsTable() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-sm text-muted-foreground">Loading projects...</div>
+        <div className="text-sm text-muted-foreground">Loading units...</div>
       </div>
     );
   }
@@ -230,7 +257,7 @@ export default function ProjectsTable() {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-sm text-red-600">
-          Error loading projects: {error.message}
+          Error loading units: {error.message}
         </div>
       </div>
     );
@@ -241,15 +268,19 @@ export default function ProjectsTable() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Ruler className="h-6 w-6 text-purple-600" />
+            Units of Measurement
+          </h2>
           <p className="text-muted-foreground">
-            Manage your construction projects
+            Manage measurement units for your materials (kg, meters, pieces,
+            etc.)
           </p>
         </div>
         {canEdit && (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Project
+            Add Unit
           </Button>
         )}
       </div>
@@ -258,7 +289,7 @@ export default function ProjectsTable() {
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
           <Input
-            placeholder="Filter projects..."
+            placeholder="Filter units..."
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
@@ -349,10 +380,12 @@ export default function ProjectsTable() {
                   className="h-24 text-center"
                 >
                   <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                    <div className="text-sm">No projects found.</div>
+                    <Ruler className="h-12 w-12 mb-4 opacity-50" />
+                    <div className="text-sm">No units found.</div>
                     {canEdit && (
                       <div className="text-xs mt-1">
-                        Click {`"Add Project"`} to create your first project.
+                        Click {`"Add Unit"`} to create your first measurement
+                        unit.
                       </div>
                     )}
                   </div>
@@ -366,7 +399,7 @@ export default function ProjectsTable() {
       {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} project(s) total.
+          {table.getFilteredRowModel().rows.length} unit(s) total.
         </div>
         <div className="space-x-2">
           <Button
@@ -389,10 +422,10 @@ export default function ProjectsTable() {
       </div>
 
       {/* Form Modal */}
-      <ProjectForm
+      <UnitForm
         open={formOpen}
         onOpenChange={setFormOpen}
-        project={selectedProject}
+        unit={selectedUnit}
         mode={formMode}
       />
     </div>

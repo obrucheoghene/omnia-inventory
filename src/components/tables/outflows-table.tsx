@@ -434,8 +434,7 @@ export default function OutflowsTable() {
                     <div className="text-sm">No outflow found.</div>
                     {canEdit && (
                       <div className="text-xs mt-1">
-                        Click ${`"Record Outflow"`} to add material
-                        distributions
+                        Click {`"Record Outflow"`} to add material distributions
                       </div>
                     )}
                   </div>
