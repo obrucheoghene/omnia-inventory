@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Inflow } from "@/lib/db/schema";
+import { Inflow, InflowWithJoins } from "@/lib/db/schema";
 import { CreateInflow, UpdateInflow } from "@/lib/validations";
 
 // Fetch all inflows with pagination
 export function useInflows(page: number = 1, limit: number = 10) {
   return useQuery({
     queryKey: ["inflows", page, limit],
-    queryFn: async (): Promise<Inflow[]> => {
+    queryFn: async (): Promise<InflowWithJoins[]> => {
       const response = await fetch(`/api/inflows?page=${page}&limit=${limit}`);
       if (!response.ok) {
         throw new Error("Failed to fetch inflows");

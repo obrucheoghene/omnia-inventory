@@ -1,5 +1,5 @@
 import { requireAuth } from "@/lib/auth/server";
-import InventoryOverview from "@/components/dashboard/inventory-overview";
+import InventoryOverview from "@/components/dashboard/enhanced-inventory-overview";
 
 export default async function DashboardPage() {
   const user = await requireAuth();

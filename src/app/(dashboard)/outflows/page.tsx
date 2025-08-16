@@ -1,5 +1,5 @@
 import { requireAuth } from "@/lib/auth/server";
-import OutflowsTable from "@/components/tables/outflows-table";
+import OutflowsTable from "@/components/tables/enhanced-outflows-table";
 
 export default async function OutflowsPage() {
   await requireAuth();

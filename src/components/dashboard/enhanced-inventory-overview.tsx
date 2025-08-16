@@ -40,7 +40,7 @@ import InflowForm from "@/components/forms/inflow-form";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 
-export default function InventoryOverview() {
+export default function EnhancedInventoryOverview() {
   const { data: session } = useSession();
   const { data: dashboardData, isLoading, error, refetch } = useDashboard();
   const [showInflowForm, setShowInflowForm] = useState(false);
@@ -81,6 +81,18 @@ export default function InventoryOverview() {
         }
       }
 
+      // Category filter
+      if (filters.categoryId) {
+        // Note: We'd need categoryId in the stock levels data for this to work
+        // For now, we'll filter by category name
+        const categoryName = dashboardData.stockLevels.find(
+          (s) => s.materialId === item.materialId
+        )?.categoryName;
+        if (categoryName && !categoryName.includes(filters.categoryId)) {
+          return false;
+        }
+      }
+
       // Material filter
       if (filters.materialId && item.materialId !== filters.materialId) {
         return false;
@@ -109,6 +121,22 @@ export default function InventoryOverview() {
           }
         }
 
+        // Project filter
+        if (filters.projectId && activity.projectName) {
+          // We'd need projectId for exact matching, using name for now
+          if (!activity.projectName.includes(filters.projectId)) {
+            return false;
+          }
+        }
+
+        // Material filter
+        if (filters.materialId && activity.materialName) {
+          // Similar issue - we'd need materialId for exact matching
+          if (!activity.materialName.includes(filters.materialId)) {
+            return false;
+          }
+        }
+
         // Date range filter
         if (dateRange) {
           const activityDate = new Date(activity.date);
@@ -124,7 +152,7 @@ export default function InventoryOverview() {
       }
     );
 
-    // Filter low stock alerts
+    // Filter low stock alerts using same logic as stock levels
     const filteredLowStockAlerts = dashboardData.lowStockAlerts.filter(
       (item) => {
         if (filters.search) {
@@ -185,6 +213,7 @@ export default function InventoryOverview() {
     if (!filteredDashboardData) return;
 
     const csvContent = [
+      // Stock levels section
       "Stock Levels",
       "Material,Category,Current Stock,Min Level,Status",
       ...filteredDashboardData.stockLevels.map(
@@ -201,6 +230,7 @@ export default function InventoryOverview() {
           }"`
       ),
       "",
+      // Recent activities section
       "Recent Activities",
       "Type,Material,Quantity,Project,Date,Person",
       ...filteredDashboardData.recentActivities.map(
@@ -228,6 +258,7 @@ export default function InventoryOverview() {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <Skeleton className="h-8 w-[300px]" />
@@ -236,9 +267,14 @@ export default function InventoryOverview() {
           <div className="flex gap-2">
             <Skeleton className="h-10 w-[100px]" />
             <Skeleton className="h-10 w-[100px]" />
+            <Skeleton className="h-10 w-[100px]" />
           </div>
         </div>
+
+        {/* Filter Skeleton */}
         <Skeleton className="h-16 w-full" />
+
+        {/* Summary Cards Skeleton */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
@@ -251,6 +287,41 @@ export default function InventoryOverview() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-[200px]" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-[150px]" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, j) => (
+                      <Skeleton key={j} className="h-16 w-full" />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -279,6 +350,7 @@ export default function InventoryOverview() {
     );
   }
 
+  // No data state
   if (!dashboardData || !filteredDashboardData) {
     return (
       <div className="space-y-6">

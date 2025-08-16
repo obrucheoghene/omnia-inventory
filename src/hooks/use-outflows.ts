@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Outflow } from "@/lib/db/schema";
+import { Outflow, OutflowWithJoins } from "@/lib/db/schema";
 import { CreateOutflow, UpdateOutflow } from "@/lib/validations";
 
 // Fetch all outflows with pagination
 export function useOutflows(page: number = 1, limit: number = 10) {
   return useQuery({
     queryKey: ["outflows", page, limit],
-    queryFn: async (): Promise<Outflow[]> => {
+    queryFn: async (): Promise<OutflowWithJoins[]> => {
       const response = await fetch(`/api/outflows?page=${page}&limit=${limit}`);
       if (!response.ok) {
         throw new Error("Failed to fetch outflows");

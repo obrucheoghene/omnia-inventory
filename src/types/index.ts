@@ -1,3 +1,5 @@
+import { Inflow } from "@/lib/db/schema";
+
 export interface User {
   id: string;
   name: string;

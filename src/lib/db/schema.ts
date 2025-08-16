@@ -314,3 +314,15 @@ export type NewOutflow = typeof outflows.$inferInsert;
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type NewAuditLog = typeof auditLogs.$inferInsert;
+
+export interface InflowWithJoins extends Inflow {
+  materialName?: string;
+  unitName?: string;
+  projectName?: string;
+}
+
+export interface OutflowWithJoins extends Outflow {
+  materialName?: string;
+  unitName?: string;
+  projectName?: string;
+}
