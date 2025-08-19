@@ -51,6 +51,7 @@ import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import OutflowForm from "@/components/forms/outflow-form";
 import { formatDate } from "@/lib/utils";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 export default function OutflowsTable() {
   const { data: session } = useSession();
@@ -65,6 +66,7 @@ export default function OutflowsTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const { outflow: outflowToast } = useInventoryToast();
 
   const canEdit = canManageInventory(session?.user?.role as UserRole);
 
@@ -80,11 +82,13 @@ export default function OutflowsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (outflow: Outflow) => {
     if (confirm("Are you sure you want to delete this outflow record?")) {
       try {
-        await deleteOutflow.mutateAsync(id);
+        await deleteOutflow.mutateAsync(outflow.id);
+        outflowToast.deleted();
       } catch (error) {
+        if (error instanceof Error) outflowToast.error("delete", error.message);
         console.error("Error deleting outflow:", error);
       }
     }
@@ -249,7 +253,7 @@ export default function OutflowsTable() {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDelete(outflow.id)}
+                onClick={() => handleDelete(outflow)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />

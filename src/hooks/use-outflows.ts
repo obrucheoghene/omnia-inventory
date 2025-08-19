@@ -45,7 +45,7 @@ export function useCreateOutflow() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create outflow");
+        throw new Error(error.error || "Failed to create outflow");
       }
 
       return response.json();
@@ -98,7 +98,7 @@ export function useDeleteOutflow() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to delete outflow");
+        throw new Error(error.error || "Failed to delete outflow");
       }
     },
     onSuccess: () => {
