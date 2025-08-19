@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   ColumnDef,
@@ -59,12 +59,16 @@ import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import MaterialForm from "@/components/forms/material-form";
 import { formatDate } from "@/lib/utils";
+import { useMaterialsWithUnits } from "@/hooks/use-inflows";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 export default function MaterialsTable() {
   const { data: session } = useSession();
   const { data: materials, isLoading, error } = useMaterials();
+  // const { data: materials, isLoading, error } = useMaterialsWithUnits();
   const { data: categories } = useCategories();
   const deleteMaterial = useDeleteMaterial();
+  const { material: materialToast } = useInventoryToast();
 
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
     null
@@ -92,28 +96,28 @@ export default function MaterialsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (material: Material) => {
     if (
       confirm(
         "Are you sure you want to delete this material? This will also affect any inventory records using this material."
       )
     ) {
       try {
-        await deleteMaterial.mutateAsync(id);
+        await deleteMaterial.mutateAsync(material.id);
+        materialToast.deleted(material.name);
       } catch (error) {
         console.error("Error deleting material:", error);
       }
     }
   };
 
-  // Filter materials by category
-  const filteredData =
-    materials?.filter((material) =>
-      selectedCategory === "all"
-        ? true
-        : material.categoryId === selectedCategory
-    ) || [];
-
+  const filteredData = useMemo(() => {
+    if (!materials) return [];
+    if (selectedCategory === "all") return materials;
+    return materials.filter(
+      (material) => material.categoryId === selectedCategory
+    );
+  }, [materials, selectedCategory]);
   // Column definitions
   const columns: ColumnDef<Material>[] = [
     {
@@ -138,12 +142,18 @@ export default function MaterialsTable() {
       ),
     },
     {
-      accessorKey: "categoryName",
+      accessorKey: "categoryId",
       header: "Category",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Tag className="h-3 w-3 text-muted-foreground" />
-          <span className="text-sm">{row.getValue("categoryName")}</span>
+          <span className="text-sm">
+            {
+              categories?.find(
+                (category) => category.id === row.getValue("categoryId")
+              )?.name
+            }
+          </span>
         </div>
       ),
     },
@@ -251,7 +261,7 @@ export default function MaterialsTable() {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDelete(material.id)}
+                onClick={() => handleDelete(material)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
