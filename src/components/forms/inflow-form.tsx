@@ -34,6 +34,7 @@ import {
 import { useProjects } from "@/hooks/use-projects";
 import { useCategories } from "@/hooks/use-categories";
 import { Inflow } from "@/lib/db/schema";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 interface InflowFormProps {
   open: boolean;
@@ -53,6 +54,7 @@ export default function InflowForm({
   const [selectedMaterial, setSelectedMaterial] = useState<string>("");
   const [availableUnits, setAvailableUnits] = useState<any[]>([]);
 
+  const { inflow: inflowToast } = useInventoryToast();
   const createInflow = useCreateInflow();
   const updateInflow = useUpdateInflow();
   const { data: projects } = useProjects();
@@ -73,7 +75,7 @@ export default function InflowForm({
       unitId: "",
       projectId: "",
       quantity: 0,
-      unitPrice: undefined,
+      unitPrice: 0,
       deliveryDate: "",
       receivedBy: "",
       supplierName: "",
@@ -114,6 +116,10 @@ export default function InflowForm({
 
       if (mode === "create") {
         await createInflow.mutateAsync(data);
+        const material = materialsWithUnits?.find(
+          (m: any) => m.id === data.materialId
+        );
+        inflowToast.created(material.name, data.quantity);
       } else if (inflow) {
         await updateInflow.mutateAsync({ ...data, id: inflow.id });
       }
@@ -135,7 +141,7 @@ export default function InflowForm({
         setValue("quantity", parseFloat(inflow.quantity));
         setValue(
           "unitPrice",
-          inflow.unitPrice ? parseFloat(inflow.unitPrice) : undefined
+          inflow.unitPrice ? parseFloat(inflow.unitPrice) : 0
         );
         setValue(
           "deliveryDate",
@@ -157,7 +163,7 @@ export default function InflowForm({
           unitId: "",
           projectId: "",
           quantity: 0,
-          unitPrice: undefined,
+          unitPrice: 0,
           deliveryDate: "",
           receivedBy: "",
           supplierName: "",
@@ -203,107 +209,112 @@ export default function InflowForm({
               Material Information
             </h4>
 
-            {/* Category Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="category">Category (Filter)</Label>
-              <Select
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All categories</SelectItem>
-                  {categories?.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Project Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="projectId">Project *</Label>
+                <Select
+                  value={watch("projectId")}
+                  onValueChange={(value) => setValue("projectId", value)}
+                >
+                  <SelectTrigger className=" w-full">
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.projectId && (
+                  <p className="text-sm text-red-600">
+                    {errors.projectId.message}
+                  </p>
+                )}
+              </div>
+              {/* Category Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="category">Category (Filter)</Label>
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
+                  <SelectTrigger className=" w-full">
+                    <SelectValue placeholder="All categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All categories</SelectItem>
+                    {categories?.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Material Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="materialId">Material *</Label>
-              <Select
-                value={watch("materialId")}
-                onValueChange={(value) => setValue("materialId", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select material" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredMaterials.map((material: any) => (
-                    <SelectItem key={material.id} value={material.id}>
-                      {material.name} ({material.categoryName})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.materialId && (
-                <p className="text-sm text-red-600">
-                  {errors.materialId.message}
-                </p>
-              )}
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Material Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="materialId">Material *</Label>
+                <Select
+                  value={watch("materialId")}
+                  onValueChange={(value) => setValue("materialId", value)}
+                >
+                  <SelectTrigger className=" w-full">
+                    <SelectValue placeholder="Select material" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredMaterials.map((material: any) => (
+                      <SelectItem key={material.id} value={material.id}>
+                        {material.name} ({material.categoryName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.materialId && (
+                  <p className="text-sm text-red-600">
+                    {errors.materialId.message}
+                  </p>
+                )}
+              </div>
 
-            {/* Unit Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="unitId">Unit *</Label>
-              <Select
-                value={watch("unitId")}
-                onValueChange={(value) => setValue("unitId", value)}
-                disabled={!selectedMaterial}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUnits.map((unit: any) => (
-                    <SelectItem key={unit.id} value={unit.id}>
-                      {unit.name} ({unit.abbreviation}){" "}
-                      {unit.isPrimary && "(Primary)"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.unitId && (
-                <p className="text-sm text-red-600">{errors.unitId.message}</p>
-              )}
-            </div>
-
-            {/* Project Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="projectId">Project *</Label>
-              <Select
-                value={watch("projectId")}
-                onValueChange={(value) => setValue("projectId", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects?.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.projectId && (
-                <p className="text-sm text-red-600">
-                  {errors.projectId.message}
-                </p>
-              )}
+              {/* Unit Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="unitId">Unit *</Label>
+                <Select
+                  value={watch("unitId")}
+                  onValueChange={(value) => setValue("unitId", value)}
+                  disabled={!selectedMaterial}
+                >
+                  <SelectTrigger className=" w-full">
+                    <SelectValue placeholder="Select unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableUnits.map((unit: any) => (
+                      <SelectItem key={unit.id} value={unit.id}>
+                        {unit.name} ({unit.abbreviation}){" "}
+                        {unit.isPrimary && "(Primary)"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.unitId && (
+                  <p className="text-sm text-red-600">
+                    {errors.unitId.message}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Quantity and Pricing Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-gray-900">
-              Quantity & Pricing
+              Quantity & Delivery Information
             </h4>
 
             <div className="grid grid-cols-2 gap-4">
@@ -329,46 +340,6 @@ export default function InflowForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="unitPrice">Unit Price (Optional)</Label>
-                <Input
-                  id="unitPrice"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  {...register("unitPrice", {
-                    valueAsNumber: true,
-                  })}
-                  placeholder="Enter unit price"
-                  disabled={isSubmitting}
-                />
-                {errors.unitPrice && (
-                  <p className="text-sm text-red-600">
-                    {errors.unitPrice.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {totalValue > 0 && (
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium">
-                  Total Value:{" "}
-                  <span className="text-green-600">
-                    ${totalValue.toFixed(2)}
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Delivery Information Section */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-900">
-              Delivery Information
-            </h4>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
                 <Label htmlFor="deliveryDate">Delivery Date *</Label>
                 <Input
                   id="deliveryDate"
@@ -379,6 +350,25 @@ export default function InflowForm({
                 {errors.deliveryDate && (
                   <p className="text-sm text-red-600">
                     {errors.deliveryDate.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="supplierName">Supplier Name *</Label>
+                <Input
+                  id="supplierName"
+                  {...register("supplierName")}
+                  placeholder="Enter supplier name"
+                  disabled={isSubmitting}
+                />
+                {errors.supplierName && (
+                  <p className="text-sm text-red-600">
+                    {errors.supplierName.message}
                   </p>
                 )}
               </div>
@@ -397,21 +387,6 @@ export default function InflowForm({
                   </p>
                 )}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="supplierName">Supplier Name *</Label>
-              <Input
-                id="supplierName"
-                {...register("supplierName")}
-                placeholder="Enter supplier name"
-                disabled={isSubmitting}
-              />
-              {errors.supplierName && (
-                <p className="text-sm text-red-600">
-                  {errors.supplierName.message}
-                </p>
-              )}
             </div>
           </div>
 

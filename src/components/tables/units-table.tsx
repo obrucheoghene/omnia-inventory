@@ -50,6 +50,7 @@ import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import UnitForm from "@/components/forms/unit-form";
 import { formatDate } from "@/lib/utils";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 export default function UnitsTable() {
   const { data: session } = useSession();
@@ -66,6 +67,7 @@ export default function UnitsTable() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const canEdit = canManageInventory(session?.user?.role as UserRole);
+  const { unit: unitToast } = useInventoryToast();
 
   const handleCreate = () => {
     setSelectedUnit(null);
@@ -79,15 +81,17 @@ export default function UnitsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (unit: Unit) => {
     if (
       confirm(
         "Are you sure you want to delete this unit? This will also affect any materials using this unit."
       )
     ) {
       try {
-        await deleteUnit.mutateAsync(id);
+        await deleteUnit.mutateAsync(unit.id);
+        unitToast.deleted(unit.name);
       } catch (error) {
+        if (error instanceof Error) unitToast.error("delete", error.message);
         console.error("Error deleting unit:", error);
       }
     }
@@ -215,7 +219,7 @@ export default function UnitsTable() {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDelete(unit.id)}
+                onClick={() => handleDelete(unit)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />

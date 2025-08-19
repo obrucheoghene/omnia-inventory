@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 import { createUnitSchema, CreateUnit } from "@/lib/validations";
 import { useCreateUnit, useUpdateUnit } from "@/hooks/use-units";
 import { Unit } from "@/lib/db/schema";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 interface UnitFormProps {
   open: boolean;
@@ -35,6 +36,7 @@ export default function UnitForm({
   mode,
 }: UnitFormProps) {
   const [error, setError] = useState("");
+  const { unit: unitToast } = useInventoryToast();
 
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
@@ -65,8 +67,10 @@ export default function UnitForm({
 
       if (mode === "create") {
         await createUnit.mutateAsync(data);
+        unitToast.created(data.name);
       } else if (unit) {
         await updateUnit.mutateAsync({ ...data, id: unit.id });
+        unitToast.updated(unit.name);
       }
 
       reset();

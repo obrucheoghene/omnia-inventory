@@ -169,30 +169,30 @@ export default function InflowsTable() {
         return <div>{formatDate(date)}</div>;
       },
     },
-    {
-      accessorKey: "unitPrice",
-      header: "Unit Price",
-      cell: ({ row }) => {
-        const price = row.getValue("unitPrice") as string | null;
-        return (
-          <div className="text-sm">
-            {price ? `$${parseFloat(price).toFixed(2)}` : "N/A"}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "totalValue",
-      header: "Total Value",
-      cell: ({ row }) => {
-        const value = row.getValue("totalValue") as string | null;
-        return (
-          <div className="text-sm font-medium">
-            {value ? `$${parseFloat(value).toFixed(2)}` : "N/A"}
-          </div>
-        );
-      },
-    },
+    // {
+    //   accessorKey: "unitPrice",
+    //   header: "Unit Price",
+    //   cell: ({ row }) => {
+    //     const price = row.getValue("unitPrice") as string | null;
+    //     return (
+    //       <div className="text-sm">
+    //         {price ? `$${parseFloat(price).toFixed(2)}` : "N/A"}
+    //       </div>
+    //     );
+    //   },
+    // },
+    // {
+    //   accessorKey: "totalValue",
+    //   header: "Total Value",
+    //   cell: ({ row }) => {
+    //     const value = row.getValue("totalValue") as string | null;
+    //     return (
+    //       <div className="text-sm font-medium">
+    //         {value ? `$${parseFloat(value).toFixed(2)}` : "N/A"}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       accessorKey: "purpose",
       header: "Purpose",

@@ -94,7 +94,7 @@ export function useDeleteUnit() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to delete Unit");
+        throw new Error(error.error || "Failed to delete Unit");
       }
     },
     onSuccess: () => {
