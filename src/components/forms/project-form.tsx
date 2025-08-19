@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 import { createProjectSchema, CreateProject } from "@/lib/validations";
 import { useCreateProject, useUpdateProject } from "@/hooks/use-projects";
 import { Project } from "@/lib/db/schema";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 interface ProjectFormProps {
   open: boolean;
@@ -35,7 +36,7 @@ export default function ProjectForm({
   mode,
 }: ProjectFormProps) {
   const [error, setError] = useState("");
-
+  const { project: projectToast } = useInventoryToast();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
 
@@ -43,6 +44,7 @@ export default function ProjectForm({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreateProject>({
     resolver: zodResolver(createProjectSchema),
@@ -57,14 +59,25 @@ export default function ProjectForm({
         },
   });
 
+  useEffect(() => {
+    if (project) {
+      setValue("name", project.name);
+      if (project.description) setValue("description", project.description);
+    } else {
+      reset();
+    }
+  }, [project]);
+
   const onSubmit = async (data: CreateProject) => {
     try {
       setError("");
 
       if (mode === "create") {
         await createProject.mutateAsync(data);
+        projectToast.created(data.name);
       } else if (project) {
         await updateProject.mutateAsync({ ...data, id: project.id });
+        projectToast.updated(project.name);
       }
 
       reset();

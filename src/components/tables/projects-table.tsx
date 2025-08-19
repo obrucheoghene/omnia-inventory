@@ -49,6 +49,7 @@ import { canManageInventory } from "@/lib/auth/permissions"; // Use helper funct
 import { UserRole } from "@/types/auth";
 import ProjectForm from "@/components/forms/project-form";
 import { formatDate } from "@/lib/utils";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 export default function ProjectsTable() {
   const { data: session } = useSession();
@@ -63,6 +64,7 @@ export default function ProjectsTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const { project: projectToast } = useInventoryToast();
 
   // Fix: Use helper function instead of hasPermission with array
   const canEdit = canManageInventory(session?.user?.role as UserRole);
@@ -79,10 +81,11 @@ export default function ProjectsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (project: Project) => {
     if (confirm("Are you sure you want to delete this project?")) {
       try {
-        await deleteProject.mutateAsync(id);
+        await deleteProject.mutateAsync(project.id);
+        projectToast.deleted(project.name);
       } catch (error) {
         console.error("Error deleting project:", error);
       }
@@ -188,7 +191,7 @@ export default function ProjectsTable() {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDelete(project.id)}
+                onClick={() => handleDelete(project)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
