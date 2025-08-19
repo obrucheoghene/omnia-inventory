@@ -18,6 +18,7 @@ export async function getMaterialsWithUnits() {
     .select({
       materialId: materials.id,
       materialName: materials.name,
+      materialDescription: materials.description,
       categoryId: materials.categoryId,
       categoryName: categories.name,
       unitId: units.id,
