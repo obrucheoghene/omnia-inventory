@@ -30,6 +30,7 @@ import { useCreateMaterial, useUpdateMaterial } from "@/hooks/use-materials";
 import { useCategories } from "@/hooks/use-categories";
 import { useUnits } from "@/hooks/use-units";
 import { Material } from "@/lib/db/schema";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 interface MaterialFormProps {
   open: boolean;
@@ -46,7 +47,7 @@ export default function MaterialForm({
 }: MaterialFormProps) {
   const [error, setError] = useState("");
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
-
+  const { material: materialToast } = useInventoryToast();
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial();
   const { data: categories } = useCategories();
@@ -70,13 +71,9 @@ export default function MaterialForm({
     },
   });
 
-  const watchedCategoryId = watch("categoryId");
-
   const onSubmit = async (data: CreateMaterial) => {
     try {
       setError("");
-
-      // Add selected units to form data
       const formData = {
         ...data,
         unitIds: selectedUnits,
@@ -84,8 +81,10 @@ export default function MaterialForm({
 
       if (mode === "create") {
         await createMaterial.mutateAsync(formData);
+        materialToast.created(data.name);
       } else if (material) {
         await updateMaterial.mutateAsync({ ...formData, id: material.id });
+        materialToast.updated(material.name);
       }
 
       reset();
@@ -107,6 +106,10 @@ export default function MaterialForm({
   const removeUnit = (unitId: string) => {
     setSelectedUnits((prev) => prev.filter((id) => id !== unitId));
   };
+
+  useEffect(() => {
+    setValue("unitIds", selectedUnits);
+  }, [selectedUnits]);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -278,10 +281,8 @@ export default function MaterialForm({
               </div>
             </div>
 
-            {selectedUnits.length === 0 && (
-              <p className="text-sm text-red-600">
-                Please select at least one unit
-              </p>
+            {errors.unitIds && (
+              <p className="text-sm text-red-600">{errors.unitIds.message}</p>
             )}
           </div>
 
@@ -332,10 +333,7 @@ export default function MaterialForm({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || selectedUnits.length === 0}
-            >
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
