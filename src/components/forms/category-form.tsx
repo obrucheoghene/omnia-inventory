@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 import { createCategorySchema, CreateCategory } from "@/lib/validations";
 import { useCreateCategory, useUpdateCategory } from "@/hooks/use-categories";
 import { Category } from "@/lib/db/schema";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 interface CategoryFormProps {
   open: boolean;
@@ -38,11 +39,13 @@ export default function CategoryForm({
 
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
+  const { category: categoryToast } = useInventoryToast();
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreateCategory>({
     resolver: zodResolver(createCategorySchema),
@@ -57,14 +60,25 @@ export default function CategoryForm({
         },
   });
 
+  useEffect(() => {
+    if (category) {
+      setValue("name", category.name);
+      if (category.description) setValue("description", category.description);
+    } else {
+      reset();
+    }
+  }, [category]);
+
   const onSubmit = async (data: CreateCategory) => {
     try {
       setError("");
 
       if (mode === "create") {
         await createCategory.mutateAsync(data);
+        categoryToast.created(data.name);
       } else if (category) {
         await updateCategory.mutateAsync({ ...data, id: category.id });
+        categoryToast.updated(data.name);
       }
 
       reset();
