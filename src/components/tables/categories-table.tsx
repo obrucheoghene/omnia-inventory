@@ -49,11 +49,13 @@ import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import CategoryForm from "@/components/forms/category-form";
 import { formatDate } from "@/lib/utils";
+import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 export default function CategoriesTable() {
   const { data: session } = useSession();
   const { data: categories, isLoading, error } = useCategories();
   const deleteCategory = useDeleteCategory();
+  const { category: categoryToast } = useInventoryToast();
 
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
@@ -80,14 +82,15 @@ export default function CategoriesTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (category: Category) => {
     if (
       confirm(
         "Are you sure you want to delete this category? This will also affect any materials using this category."
       )
     ) {
       try {
-        await deleteCategory.mutateAsync(id);
+        await deleteCategory.mutateAsync(category.id);
+        categoryToast.deleted(category.name);
       } catch (error) {
         console.error("Error deleting category:", error);
       }
@@ -193,7 +196,7 @@ export default function CategoriesTable() {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDelete(category.id)}
+                onClick={() => handleDelete(category)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
