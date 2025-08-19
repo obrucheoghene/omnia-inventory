@@ -54,7 +54,7 @@ import {
 } from "lucide-react";
 import { useMaterials, useDeleteMaterial } from "@/hooks/use-materials";
 import { useCategories } from "@/hooks/use-categories";
-import { Material } from "@/lib/db/schema";
+import { Material, MaterialWithUnitIds } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import MaterialForm from "@/components/forms/material-form";
@@ -70,9 +70,8 @@ export default function MaterialsTable() {
   const deleteMaterial = useDeleteMaterial();
   const { material: materialToast } = useInventoryToast();
 
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
-    null
-  );
+  const [selectedMaterial, setSelectedMaterial] =
+    useState<MaterialWithUnitIds | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -90,7 +89,7 @@ export default function MaterialsTable() {
     setFormOpen(true);
   };
 
-  const handleEdit = (material: Material) => {
+  const handleEdit = (material: MaterialWithUnitIds) => {
     setSelectedMaterial(material);
     setFormMode("edit");
     setFormOpen(true);
@@ -119,7 +118,7 @@ export default function MaterialsTable() {
     );
   }, [materials, selectedCategory]);
   // Column definitions
-  const columns: ColumnDef<Material>[] = [
+  const columns: ColumnDef<MaterialWithUnitIds>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {

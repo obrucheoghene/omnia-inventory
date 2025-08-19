@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Material } from "@/lib/db/schema";
+import { Material, MaterialWithUnitIds } from "@/lib/db/schema";
 import { CreateMaterial, UpdateMaterial } from "@/lib/validations";
 
 // Fetch all materials
 export function useMaterials() {
   return useQuery({
     queryKey: ["materials"],
-    queryFn: async (): Promise<Material[]> => {
+    queryFn: async (): Promise<MaterialWithUnitIds[]> => {
       const response = await fetch("/api/materials");
       if (!response.ok) {
         throw new Error("Failed to fetch materials");

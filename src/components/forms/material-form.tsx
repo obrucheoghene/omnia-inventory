@@ -29,13 +29,13 @@ import { createMaterialSchema, CreateMaterial } from "@/lib/validations";
 import { useCreateMaterial, useUpdateMaterial } from "@/hooks/use-materials";
 import { useCategories } from "@/hooks/use-categories";
 import { useUnits } from "@/hooks/use-units";
-import { Material } from "@/lib/db/schema";
+import { MaterialWithUnitIds } from "@/lib/db/schema";
 import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
 interface MaterialFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  material?: Material | null;
+  material?: MaterialWithUnitIds | null;
   mode: "create" | "edit";
 }
 
@@ -122,10 +122,11 @@ export default function MaterialForm({
           minStockLevel: material.minStockLevel
             ? parseFloat(material.minStockLevel)
             : 0,
-          unitIds: [],
+          unitIds: material.unitIds,
         });
+        setSelectedUnits(material.unitIds);
         // TODO: Load existing unit relationships for edit mode
-        setSelectedUnits([]);
+        // setSelectedUnits([]);
       } else {
         reset({
           name: "",

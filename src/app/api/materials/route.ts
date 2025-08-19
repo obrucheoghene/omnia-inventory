@@ -8,7 +8,7 @@ import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import { z } from "zod";
 
-// GET - List all materials
+// GET - List all materials with their associated units
 export async function GET() {
   try {
     const session = await auth();
@@ -16,13 +16,40 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const allMaterials = await db
-      .select()
+    // Get all materials with their associated unit IDs
+    const materialsWithUnits = await db
+      .select({
+        id: materials.id,
+        name: materials.name,
+        description: materials.description,
+        categoryId: materials.categoryId,
+        minStockLevel: materials.minStockLevel,
+        isActive: materials.isActive,
+        createdAt: materials.createdAt,
+        updatedAt: materials.updatedAt,
+        unitIds: sql<string[]>`
+          COALESCE(
+            ARRAY_AGG(${materialUnits.unitId}) FILTER (WHERE ${materialUnits.unitId} IS NOT NULL),
+            ARRAY[]::uuid[]
+          )
+        `.as("unitIds"),
+      })
       .from(materials)
+      .leftJoin(materialUnits, eq(materials.id, materialUnits.materialId))
       .where(eq(materials.isActive, true))
+      .groupBy(
+        materials.id,
+        materials.name,
+        materials.description,
+        materials.categoryId,
+        materials.minStockLevel,
+        materials.isActive,
+        materials.createdAt,
+        materials.updatedAt
+      )
       .orderBy(materials.name);
 
-    return NextResponse.json(allMaterials);
+    return NextResponse.json(materialsWithUnits);
   } catch (error) {
     console.error("Error fetching materials:", error);
     return NextResponse.json(

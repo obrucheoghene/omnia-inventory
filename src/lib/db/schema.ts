@@ -303,6 +303,10 @@ export type NewMaterial = typeof materials.$inferInsert;
 export type Unit = typeof units.$inferSelect;
 export type NewUnit = typeof units.$inferInsert;
 
+export type MaterialWithUnitIds = Material & {
+  unitIds: string[];
+};
+
 export type MaterialUnit = typeof materialUnits.$inferSelect;
 export type NewMaterialUnit = typeof materialUnits.$inferInsert;
 
