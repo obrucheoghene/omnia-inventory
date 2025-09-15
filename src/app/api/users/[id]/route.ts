@@ -29,9 +29,10 @@ const updateUserSchema = z.object({
 // GET - Get single user (SUPER_USER only)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "SUPER_USER") {
@@ -49,7 +50,7 @@ export async function GET(
         updatedAt: users.updatedAt,
       })
       .from(users)
-      .where(eq(users.id, params.id))
+      .where(eq(users.id, id))
       .limit(1);
 
     if (!user) {
@@ -69,9 +70,10 @@ export async function GET(
 // PUT - Update user (SUPER_USER only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "SUPER_USER") {
@@ -85,7 +87,7 @@ export async function PUT(
     const [existingUser] = await db
       .select()
       .from(users)
-      .where(eq(users.id, params.id))
+      .where(eq(users.id, id))
       .limit(1);
 
     if (!existingUser) {
@@ -128,7 +130,7 @@ export async function PUT(
     const [updatedUser] = await db
       .update(users)
       .set(updateData)
-      .where(eq(users.id, params.id))
+      .where(eq(users.id, id))
       .returning({
         id: users.id,
         name: users.name,
@@ -159,9 +161,10 @@ export async function PUT(
 // DELETE - Deactivate user (SUPER_USER only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== "SUPER_USER") {
@@ -169,7 +172,7 @@ export async function DELETE(
     }
 
     // Prevent self-deletion
-    if (params.id === session.user.id) {
+    if (id === session.user.id) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
         { status: 400 }
@@ -180,7 +183,7 @@ export async function DELETE(
     const [existingUser] = await db
       .select()
       .from(users)
-      .where(eq(users.id, params.id))
+      .where(eq(users.id, id))
       .limit(1);
 
     if (!existingUser) {
@@ -194,7 +197,7 @@ export async function DELETE(
         isActive: false,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, params.id));
+      .where(eq(users.id, id));
 
     return NextResponse.json({ message: "User deleted successfully" });
   } catch (error) {

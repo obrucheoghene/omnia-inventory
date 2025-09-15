@@ -51,7 +51,7 @@ const createUserSchema = z.object({
     .min(6, "Password must be at least 6 characters")
     .max(255, "Password too long"),
   role: z.enum(["SUPER_USER", "EDITOR", "VIEWER"], {
-    required_error: "Please select a role",
+    // required_error: "Please select a role",
   }),
 });
 

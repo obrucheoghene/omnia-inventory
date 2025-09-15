@@ -11,9 +11,10 @@ import { z } from "zod";
 // GET - Get single unit
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +23,7 @@ export async function GET(
     const [unit] = await db
       .select()
       .from(units)
-      .where(eq(units.id, params.id))
+      .where(eq(units.id, id))
       .limit(1);
 
     if (!unit) {
@@ -42,9 +43,10 @@ export async function GET(
 // PUT - Update unit
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,13 +58,13 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const validatedData = updateUnitSchema.parse({ ...body, id: params.id });
+    const validatedData = updateUnitSchema.parse({ ...body, id: id });
 
     // Check if unit exists
     const [existingUnit] = await db
       .select()
       .from(units)
-      .where(eq(units.id, params.id))
+      .where(eq(units.id, id))
       .limit(1);
 
     if (!existingUnit) {
@@ -78,7 +80,7 @@ export async function PUT(
           and(
             sql`LOWER(${units.name}) = LOWER(${validatedData.name})`,
             eq(units.isActive, true),
-            ne(units.id, params.id) // Exclude current unit from check
+            ne(units.id, id) // Exclude current unit from check
           )
         )
         .limit(1);
@@ -103,7 +105,7 @@ export async function PUT(
           and(
             sql`LOWER(${units.abbreviation}) = LOWER(${validatedData.abbreviation})`,
             eq(units.isActive, true),
-            ne(units.id, params.id) // Exclude current unit from check
+            ne(units.id, id) // Exclude current unit from check
           )
         )
         .limit(1);
@@ -124,7 +126,7 @@ export async function PUT(
         description: validatedData.description,
         updatedAt: new Date(),
       })
-      .where(eq(units.id, params.id))
+      .where(eq(units.id, id))
       .returning();
 
     return NextResponse.json(updatedUnit);
@@ -147,9 +149,10 @@ export async function PUT(
 // DELETE - Soft delete unit
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -164,7 +167,7 @@ export async function DELETE(
     const [existingUnit] = await db
       .select()
       .from(units)
-      .where(and(eq(units.id, params.id), eq(units.isActive, true)))
+      .where(and(eq(units.id, id), eq(units.isActive, true)))
       .limit(1);
 
     if (!existingUnit) {
@@ -175,7 +178,7 @@ export async function DELETE(
     const [relatedMaterialUnits] = await db
       .select()
       .from(materialUnits)
-      .where(eq(materialUnits.unitId, params.id))
+      .where(eq(materialUnits.unitId, id))
       .limit(1);
 
     if (relatedMaterialUnits) {
@@ -194,7 +197,7 @@ export async function DELETE(
         isActive: false,
         updatedAt: new Date(),
       })
-      .where(eq(units.id, params.id))
+      .where(eq(units.id, id))
       .returning();
 
     return NextResponse.json({
