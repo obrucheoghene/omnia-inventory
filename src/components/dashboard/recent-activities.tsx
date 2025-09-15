@@ -54,7 +54,7 @@ export default function RecentActivities({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[700px] overflow-auto">
           {activities.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />

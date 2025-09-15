@@ -491,13 +491,11 @@ export default function EnhancedInventoryOverview() {
             lowStockItems={filteredDashboardData.lowStockAlerts}
             onCreateInflow={canEdit ? handleCreateInflow : undefined}
           />
-
-          {/* Recent Activities */}
-          <RecentActivities
-            activities={filteredDashboardData.recentActivities}
-          />
         </div>
       </div>
+
+      {/* Recent Activities */}
+      <RecentActivities activities={filteredDashboardData.recentActivities} />
 
       {/* Additional Stats Row - Updated with filtered data */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

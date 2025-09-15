@@ -356,6 +356,36 @@ export default function OutflowForm({
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="quantity">Unit Price </Label>
+                <Input
+                  id="unitPrice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  {...register("unitPrice", {
+                    valueAsNumber: true,
+                  })}
+                  placeholder="Enter unit price"
+                  disabled={isSubmitting}
+                />
+                {errors.quantity && (
+                  <p className="text-sm text-red-600">
+                    {errors.quantity.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Total Value </Label>
+                <Input
+                  placeholder="Total value"
+                  value={totalValue ? totalValue : ""}
+                  readOnly={true}
+                  disabled={true}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="releaseDate">Release Date *</Label>
                 <Input
                   id="releaseDate"

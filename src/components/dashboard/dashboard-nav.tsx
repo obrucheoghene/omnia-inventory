@@ -152,7 +152,7 @@ export default function DashboardNav() {
       {/* Footer */}
       <div className="p-4 border-t border-gray-100">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>Omnia v2.0</span>
+          <span>Omnia Inventory</span>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-green-400 rounded-full" />
             <span>Online</span>

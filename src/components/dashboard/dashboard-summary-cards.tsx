@@ -50,6 +50,7 @@ export default function DashboardSummaryCards({
       title: "Total Stock Value",
       value: `$${summary.totalStockValue.toLocaleString()}`,
       icon: DollarSign,
+
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
