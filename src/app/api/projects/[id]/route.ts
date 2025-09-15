@@ -11,9 +11,10 @@ import { z } from "zod";
 // GET - Get single project
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +23,7 @@ export async function GET(
     const [project] = await db
       .select()
       .from(projects)
-      .where(eq(projects.id, params.id))
+      .where(eq(projects.id, id))
       .limit(1);
 
     if (!project) {
@@ -42,9 +43,10 @@ export async function GET(
 // PUT - Update project
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,13 +58,13 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const validatedData = updateProjectSchema.parse({ ...body, id: params.id });
+    const validatedData = updateProjectSchema.parse({ ...body, id: id });
 
     // Check if project exists
     const [existingProject] = await db
       .select()
       .from(projects)
-      .where(eq(projects.id, params.id))
+      .where(eq(projects.id, id))
       .limit(1);
 
     if (!existingProject) {
@@ -78,7 +80,7 @@ export async function PUT(
           and(
             sql`LOWER(${projects.name}) = LOWER(${validatedData.name})`,
             eq(projects.isActive, true),
-            ne(projects.id, params.id) // Exclude current project from check
+            ne(projects.id, id) // Exclude current project from check
           )
         )
         .limit(1);
@@ -98,7 +100,7 @@ export async function PUT(
         description: validatedData.description,
         updatedAt: new Date(),
       })
-      .where(eq(projects.id, params.id))
+      .where(eq(projects.id, id))
       .returning();
 
     return NextResponse.json(updatedProject);
@@ -121,9 +123,10 @@ export async function PUT(
 // DELETE - Soft delete project
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -138,7 +141,7 @@ export async function DELETE(
     const [existingProject] = await db
       .select()
       .from(projects)
-      .where(and(eq(projects.id, params.id), eq(projects.isActive, true)))
+      .where(and(eq(projects.id, id), eq(projects.isActive, true)))
       .limit(1);
 
     if (!existingProject) {
@@ -149,13 +152,13 @@ export async function DELETE(
     const [relatedInflows] = await db
       .select()
       .from(inflows)
-      .where(eq(inflows.projectId, params.id))
+      .where(eq(inflows.projectId, id))
       .limit(1);
 
     const [relatedOutflows] = await db
       .select()
       .from(outflows)
-      .where(eq(outflows.projectId, params.id))
+      .where(eq(outflows.projectId, id))
       .limit(1);
 
     if (relatedInflows || relatedOutflows) {
@@ -171,7 +174,7 @@ export async function DELETE(
         isActive: false,
         updatedAt: new Date(),
       })
-      .where(eq(projects.id, params.id))
+      .where(eq(projects.id, id))
       .returning();
 
     return NextResponse.json({
