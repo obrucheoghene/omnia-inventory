@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useMemo } from "react";
@@ -133,7 +132,7 @@ export default function DashboardAnalytics({
           Math.max(previousInflows + previousOutflows, 1)) *
         100,
     };
-  }, [dashboardData.recentActivities]);
+  }, [dashboardData]);
 
   // Project utilization
   const projectUtilization = useMemo(() => {
@@ -228,7 +227,7 @@ export default function DashboardAnalytics({
       .sort((a, b) => b.efficiency - a.efficiency);
 
     return { efficiency, categories };
-  }, [dashboardData.stockLevels]);
+  }, [dashboardData]);
 
   // Activity patterns by day
   const activityPatterns = useMemo(() => {

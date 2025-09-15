@@ -66,7 +66,7 @@ export default function ProjectForm({
     } else {
       reset();
     }
-  }, [project]);
+  }, [project, reset, setValue]);
 
   const onSubmit = async (data: CreateProject) => {
     try {

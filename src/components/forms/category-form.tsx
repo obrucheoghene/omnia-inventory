@@ -67,7 +67,7 @@ export default function CategoryForm({
     } else {
       reset();
     }
-  }, [category]);
+  }, [category, reset, setValue]);
 
   const onSubmit = async (data: CreateCategory) => {
     try {

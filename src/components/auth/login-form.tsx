@@ -104,7 +104,7 @@ export default function LoginForm() {
               )}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-gray-600">
+          {/* <div className="mt-4 text-center text-sm text-gray-600">
             <p>Default credentials:</p>
             <p>
               Username: <strong>admin</strong>
@@ -112,7 +112,7 @@ export default function LoginForm() {
             <p>
               Password: <strong>admin123</strong>
             </p>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>

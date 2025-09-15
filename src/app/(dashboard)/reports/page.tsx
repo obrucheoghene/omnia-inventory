@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
   Card,
@@ -65,20 +64,23 @@ export default function ReportsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   // Helper function to filter data by period
-  const filterDataByPeriod = (data: any[], dateField: string) => {
-    const now = new Date();
-    const periods = {
-      week: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-      month: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-      quarter: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
-      year: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000),
-    };
+  const filterDataByPeriod = useCallback(
+    (data: any[], dateField: string) => {
+      const now = new Date();
+      const periods = {
+        week: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+        month: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+        quarter: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
+        year: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000),
+      };
 
-    if (selectedPeriod === "all") return data;
+      if (selectedPeriod === "all") return data;
 
-    const startDate = periods[selectedPeriod as keyof typeof periods];
-    return data.filter((item) => new Date(item[dateField]) >= startDate);
-  };
+      const startDate = periods[selectedPeriod as keyof typeof periods];
+      return data.filter((item) => new Date(item[dateField]) >= startDate);
+    },
+    [selectedPeriod]
+  );
 
   // Stock levels by category
   const stockByCategory = useMemo(() => {
@@ -162,7 +164,7 @@ export default function ReportsPage() {
       .sort((a, b) => b.activities - a.activities);
 
     return projectData;
-  }, [inflows, outflows, projects, selectedPeriod]);
+  }, [inflows, outflows, projects, filterDataByPeriod]);
 
   // Recent activity summary
   const activitySummary = useMemo(() => {
@@ -194,7 +196,7 @@ export default function ReportsPage() {
         0
       ),
     };
-  }, [inflows, outflows, selectedPeriod]);
+  }, [inflows, outflows, filterDataByPeriod]);
 
   // Top materials by activity
   const topMaterials = useMemo(() => {
@@ -242,7 +244,7 @@ export default function ReportsPage() {
     return Object.values(materialActivity)
       .sort((a: any, b: any) => b.activities - a.activities)
       .slice(0, 10);
-  }, [inflows, outflows, dashboardData?.stockLevels, selectedPeriod]);
+  }, [inflows, outflows, dashboardData?.stockLevels, filterDataByPeriod]);
 
   const handleExportReport = (reportType: string) => {
     const timestamp = new Date().toISOString().split("T")[0];

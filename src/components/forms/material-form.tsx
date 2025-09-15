@@ -109,7 +109,7 @@ export default function MaterialForm({
 
   useEffect(() => {
     setValue("unitIds", selectedUnits);
-  }, [selectedUnits]);
+  }, [selectedUnits, setValue]);
 
   // Reset form when modal opens/closes
   useEffect(() => {

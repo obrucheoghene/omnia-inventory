@@ -11,8 +11,9 @@ import { z } from "zod";
 // GET - Get single category
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user) {
@@ -22,7 +23,7 @@ export async function GET(
     const [project] = await db
       .select()
       .from(categories)
-      .where(eq(categories.id, params.id))
+      .where(eq(categories.id, id))
       .limit(1);
 
     if (!project) {
@@ -45,9 +46,10 @@ export async function GET(
 // PUT - Update category
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -61,14 +63,14 @@ export async function PUT(
     const body = await request.json();
     const validatedData = updateCategorySchema.parse({
       ...body,
-      id: params.id,
+      id: id,
     });
 
     // Check if category exists
     const [existingCategory] = await db
       .select()
       .from(categories)
-      .where(eq(categories.id, params.id))
+      .where(eq(categories.id, id))
       .limit(1);
 
     if (!existingCategory) {
@@ -87,7 +89,7 @@ export async function PUT(
           and(
             sql`LOWER(${categories.name}) = LOWER(${validatedData.name})`,
             eq(categories.isActive, true),
-            ne(categories.id, params.id) // Exclude current category from check
+            ne(categories.id, id) // Exclude current category from check
           )
         )
         .limit(1);
@@ -107,7 +109,7 @@ export async function PUT(
         description: validatedData.description,
         updatedAt: new Date(),
       })
-      .where(eq(categories.id, params.id))
+      .where(eq(categories.id, id))
       .returning();
 
     return NextResponse.json(updatedCategory);
@@ -130,9 +132,10 @@ export async function PUT(
 // DELETE - Soft delete category
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -147,7 +150,7 @@ export async function DELETE(
     const [existingCategory] = await db
       .select()
       .from(categories)
-      .where(and(eq(categories.id, params.id), eq(categories.isActive, true)))
+      .where(and(eq(categories.id, id), eq(categories.isActive, true)))
       .limit(1);
 
     if (!existingCategory) {
@@ -161,9 +164,7 @@ export async function DELETE(
     const [relatedMaterials] = await db
       .select()
       .from(materials)
-      .where(
-        and(eq(materials.categoryId, params.id), eq(materials.isActive, true))
-      )
+      .where(and(eq(materials.categoryId, id), eq(materials.isActive, true)))
       .limit(1);
 
     if (relatedMaterials) {
@@ -182,7 +183,7 @@ export async function DELETE(
         isActive: false,
         updatedAt: new Date(),
       })
-      .where(eq(categories.id, params.id))
+      .where(eq(categories.id, id))
       .returning();
 
     return NextResponse.json({
