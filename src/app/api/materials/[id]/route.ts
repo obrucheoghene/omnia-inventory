@@ -18,9 +18,11 @@ import { z } from "zod";
 // GET - Get single material with relationships
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,7 +43,7 @@ export async function GET(
       })
       .from(materials)
       .leftJoin(categories, eq(materials.categoryId, categories.id))
-      .where(eq(materials.id, params.id))
+      .where(eq(materials.id, id))
       .limit(1);
 
     if (!material) {
@@ -62,7 +64,7 @@ export async function GET(
       })
       .from(materialUnits)
       .innerJoin(units, eq(materialUnits.unitId, units.id))
-      .where(eq(materialUnits.materialId, params.id))
+      .where(eq(materialUnits.materialId, id))
       .orderBy(materialUnits.isPrimary); // Primary unit first
 
     const response = {
@@ -83,9 +85,10 @@ export async function GET(
 // PUT - Update material
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -99,14 +102,14 @@ export async function PUT(
     const body = await request.json();
     const validatedData = updateMaterialSchema.parse({
       ...body,
-      id: params.id,
+      id: id,
     });
 
     // Check if material exists
     const [existingMaterial] = await db
       .select()
       .from(materials)
-      .where(eq(materials.id, params.id))
+      .where(eq(materials.id, id))
       .limit(1);
 
     if (!existingMaterial) {
@@ -125,7 +128,7 @@ export async function PUT(
           and(
             sql`LOWER(${materials.name}) = LOWER(${validatedData.name})`,
             eq(materials.isActive, true),
-            ne(materials.id, params.id) // Exclude current material from check
+            ne(materials.id, id) // Exclude current material from check
           )
         )
         .limit(1);
@@ -150,19 +153,17 @@ export async function PUT(
     const [updatedMaterial] = await db
       .update(materials)
       .set(materialData)
-      .where(eq(materials.id, params.id))
+      .where(eq(materials.id, id))
       .returning();
 
     // Update material-unit relationships if unitIds provided
     if (validatedData.unitIds && validatedData.unitIds.length > 0) {
       // Delete existing relationships
-      await db
-        .delete(materialUnits)
-        .where(eq(materialUnits.materialId, params.id));
+      await db.delete(materialUnits).where(eq(materialUnits.materialId, id));
 
       // Create new relationships
       const materialUnitData = validatedData.unitIds.map((unitId, index) => ({
-        materialId: params.id,
+        materialId: id,
         unitId: unitId,
         isPrimary: index === 0, // First unit is primary
       }));
@@ -190,9 +191,10 @@ export async function PUT(
 // DELETE - Soft delete material
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -207,7 +209,7 @@ export async function DELETE(
     const [existingMaterial] = await db
       .select()
       .from(materials)
-      .where(and(eq(materials.id, params.id), eq(materials.isActive, true)))
+      .where(and(eq(materials.id, id), eq(materials.isActive, true)))
       .limit(1);
 
     if (!existingMaterial) {
@@ -220,13 +222,13 @@ export async function DELETE(
     const [relatedInflows] = await db
       .select()
       .from(inflows)
-      .where(eq(inflows.materialId, params.id))
+      .where(eq(inflows.materialId, id))
       .limit(1);
 
     const [relatedOutflows] = await db
       .select()
       .from(outflows)
-      .where(eq(outflows.materialId, params.id))
+      .where(eq(outflows.materialId, id))
       .limit(1);
 
     if (relatedInflows || relatedOutflows) {
@@ -239,9 +241,7 @@ export async function DELETE(
     }
 
     // Delete material-unit relationships first (cleanup)
-    await db
-      .delete(materialUnits)
-      .where(eq(materialUnits.materialId, params.id));
+    await db.delete(materialUnits).where(eq(materialUnits.materialId, id));
 
     // Soft delete the material
     const [deletedMaterial] = await db
@@ -250,7 +250,7 @@ export async function DELETE(
         isActive: false,
         updatedAt: new Date(),
       })
-      .where(eq(materials.id, params.id))
+      .where(eq(materials.id, id))
       .returning();
 
     return NextResponse.json({
