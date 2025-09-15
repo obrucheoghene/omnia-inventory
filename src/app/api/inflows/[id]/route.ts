@@ -11,9 +11,10 @@ import { z } from "zod";
 // GET - Get single inflow
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +23,7 @@ export async function GET(
     const [inflow] = await db
       .select()
       .from(inflows)
-      .where(eq(inflows.id, params.id))
+      .where(eq(inflows.id, id))
       .limit(1);
 
     if (!inflow) {
@@ -42,9 +43,10 @@ export async function GET(
 // PUT - Update inflow
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -55,13 +57,13 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const validatedData = updateInflowSchema.parse({ ...body, id: params.id });
+    const validatedData = updateInflowSchema.parse({ ...body, id: id });
 
     // Check if inflow exists
     const [existingInflow] = await db
       .select()
       .from(inflows)
-      .where(eq(inflows.id, params.id))
+      .where(eq(inflows.id, id))
       .limit(1);
 
     if (!existingInflow) {
@@ -99,7 +101,7 @@ export async function PUT(
     const [updatedInflow] = await db
       .update(inflows)
       .set(updateData)
-      .where(eq(inflows.id, params.id))
+      .where(eq(inflows.id, id))
       .returning();
 
     return NextResponse.json(updatedInflow);
@@ -122,9 +124,10 @@ export async function PUT(
 // DELETE - Delete inflow
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -137,14 +140,14 @@ export async function DELETE(
     const [existingInflow] = await db
       .select()
       .from(inflows)
-      .where(eq(inflows.id, params.id))
+      .where(eq(inflows.id, id))
       .limit(1);
 
     if (!existingInflow) {
       return NextResponse.json({ error: "Inflow not found" }, { status: 404 });
     }
 
-    await db.delete(inflows).where(eq(inflows.id, params.id));
+    await db.delete(inflows).where(eq(inflows.id, id));
 
     return NextResponse.json({ message: "Inflow deleted successfully" });
   } catch (error) {
