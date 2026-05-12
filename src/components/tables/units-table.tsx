@@ -49,6 +49,7 @@ import { Unit } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import UnitForm from "@/components/forms/unit-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
@@ -269,25 +270,17 @@ export default function UnitsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Ruler className="h-6 w-6 text-purple-600" />
-            Units of Measurement
-          </h2>
-          <p className="text-muted-foreground">
-            Manage measurement units for your materials (kg, meters, pieces,
-            etc.)
-          </p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        title="Units of Measurement"
+        description="Manage measurement units for your materials (kg, meters, pieces, etc.)"
+        icon={Ruler}
+        actions={canEdit ? (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add Unit
           </Button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Filters and Controls */}
       <div className="flex items-center justify-between">

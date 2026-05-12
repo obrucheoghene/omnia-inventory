@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import React from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -292,23 +292,6 @@ function DashboardAnalyticsSection({ dashboardData }: { dashboardData: any }) {
         </Card>
       </div>
 
-      {/* 
-        Here you would integrate the DashboardAnalytics component:
-        <DashboardAnalytics dashboardData={dashboardData} />
-      */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Advanced Analytics</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            🚀 Advanced analytics components will be rendered here when you
-            integrate the DashboardAnalytics component. This would show velocity
-            metrics, project utilization, material turnover, and weekly
-            patterns.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
@@ -417,26 +400,6 @@ function InventoryChartsSection({ dashboardData }: { dashboardData: any }) {
         </Card>
       </div>
 
-      {/* 
-        Here you would integrate the InventoryCharts component:
-        <InventoryCharts 
-          stockLevels={dashboardData.stockLevels} 
-          recentActivities={dashboardData.recentActivities} 
-        />
-      */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Visual Charts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            📊 Advanced visual charts will be rendered here when you integrate
-            the InventoryCharts component. This would show category
-            distribution, activity trends, stock health metrics, and top moving
-            materials.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }

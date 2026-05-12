@@ -51,6 +51,7 @@ import {
 import { useUsers, useDeleteUser } from "@/hooks/use-users";
 import { User } from "@/lib/db/schema";
 import UserForm from "@/components/forms/user-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
@@ -306,22 +307,17 @@ export default function UsersTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Users className="h-6 w-6 text-blue-600" />
-            User Management
-          </h2>
-          <p className="text-muted-foreground">
-            Manage system users and their access permissions
-          </p>
-        </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
-      </div>
+      <PageHeader
+        title="User Management"
+        description="Manage system users and their access permissions"
+        icon={Users}
+        actions={
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add User
+          </Button>
+        }
+      />
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-4">

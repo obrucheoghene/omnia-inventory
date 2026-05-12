@@ -3,51 +3,47 @@
 import React, { ReactNode, useState } from "react";
 import DashboardNav from "./dashboard-nav";
 import UserProfile from "../auth/user-profile";
-import { Menu, Sparkles } from "lucide-react";
+import { Menu } from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 const DashboardLayoutComp = ({ children }: { children: ReactNode }) => {
-  const [showNav, setShowNav] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center ">
-            {/* Logo & Brand */}
-            <Menu
-              className=" h-5 w-5 lg:hidden"
-              onClick={() => setShowNav((prev) => !prev)}
-            />
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-64 flex-shrink-0 flex-col border-r border-border bg-card">
+        <DashboardNav />
+      </aside>
 
-            <div className="hidden lg:flex items-center gap-3">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  Omnia Inventory
-                </h1>
-                <p className="text-xs text-slate-500 font-medium">
-                  Warehouse Management System
-                </p>
-              </div>
-            </div>
-            <UserProfile />
-          </div>
-        </div>
-      </header>
+      {/* Mobile sidebar drawer */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="p-0 w-64">
+          <DashboardNav onNavClick={() => setMobileOpen(false)} />
+        </SheetContent>
+      </Sheet>
 
-      <div className="container mx-auto px-6 py-6">
-        <div className="relative flex gap-6 h-full ">
-          {showNav && (
-            <div className="w-64 flex-shrink-0 absolute lg:static z-10 ">
-              <DashboardNav />
-            </div>
-          )}
-          <main className="flex-1 min-h-[calc(100vh-140px)]">{children}</main>
-        </div>
+      {/* Main content column */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Top bar */}
+        <header className="flex items-center justify-between h-14 px-4 border-b border-border bg-card flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="flex-1" />
+          <UserProfile />
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

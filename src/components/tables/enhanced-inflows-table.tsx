@@ -52,6 +52,7 @@ import { Inflow, InflowWithJoins } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import InflowForm from "@/components/forms/inflow-form";
+import { PageHeader } from "@/components/ui/page-header";
 import FilterControls, {
   FilterValues,
 } from "@/components/filters/filter-controls";
@@ -386,35 +387,32 @@ export default function EnhancedInflowsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-green-600" />
-            Material Inflows
-          </h2>
-          <p className="text-muted-foreground">
+      <PageHeader
+        title="Material Inflows"
+        description={
+          <>
             Track materials received into the warehouse
             {hasActiveFilters && (
-              <span className="ml-2 text-sm">
-                • {filteredData.length} of {inflows?.length || 0} records
-              </span>
+              <span className="ml-2 text-xs">• {filteredData.length} of {inflows?.length || 0} records</span>
             )}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {canEdit && (
-            <Button onClick={handleCreate}>
-              <Plus className="mr-2 h-4 w-4" />
-              Record Inflow
+          </>
+        }
+        icon={TrendingUp}
+        actions={
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <Button onClick={handleCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Record Inflow
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleExport} className="gap-2">
+              <Download className="h-4 w-4" />
+              Export
             </Button>
-          )}
-          <Button variant="outline" onClick={handleExport} className="gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-        </div>
-      </div>
+          </div>
+        }
+      />
 
       {/* Advanced Filter Controls */}
       <FilterControls

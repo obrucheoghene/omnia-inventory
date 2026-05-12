@@ -4,9 +4,5 @@ import InflowsTable from "@/components/tables/enhanced-inflows-table";
 export default async function InflowsPage() {
   await requireAuth();
 
-  return (
-    <div className="container mx-auto p-6">
-      <InflowsTable />
-    </div>
-  );
+  return <InflowsTable />;
 }

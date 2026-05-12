@@ -11,9 +11,5 @@ export default async function UsersPage() {
     redirect("/dashboard");
   }
 
-  return (
-    <div className="container mx-auto p-6">
-      <UsersTable />
-    </div>
-  );
+  return <UsersTable />;
 }

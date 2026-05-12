@@ -42,12 +42,14 @@ import {
   ArrowUpDown,
   ChevronDown,
   Settings2,
+  Boxes,
 } from "lucide-react";
 import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { Category } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import CategoryForm from "@/components/forms/category-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
@@ -248,23 +250,17 @@ export default function CategoriesTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            Material Categories
-          </h2>
-          <p className="text-muted-foreground">
-            Organize materials into categories for better management
-          </p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        title="Material Categories"
+        description="Organize materials into categories for better management"
+        icon={Boxes}
+        actions={canEdit ? (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add Category
           </Button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Filters and Controls */}
       <div className="flex items-center justify-between">

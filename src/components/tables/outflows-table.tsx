@@ -50,6 +50,7 @@ import { Outflow } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import OutflowForm from "@/components/forms/outflow-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
@@ -303,24 +304,17 @@ export default function OutflowsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <TrendingDown className="h-6 w-6 text-red-600" />
-            Material Outflows
-          </h2>
-          <p className="text-muted-foreground">
-            Track materials distributed from the warehouse
-          </p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        title="Material Outflows"
+        description="Track materials distributed from the warehouse"
+        icon={TrendingDown}
+        actions={canEdit ? (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Record Outflow
           </Button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Filters and Controls */}
       <div className="flex items-center justify-between">

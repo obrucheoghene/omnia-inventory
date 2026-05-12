@@ -42,12 +42,14 @@ import {
   ArrowUpDown,
   ChevronDown,
   Settings2,
+  FolderOpen,
 } from "lucide-react";
 import { useProjects, useDeleteProject } from "@/hooks/use-projects";
 import { Project } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions"; // Use helper function
 import { UserRole } from "@/types/auth";
 import ProjectForm from "@/components/forms/project-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 import { useInventoryToast } from "@/hooks/use-inventory-toast";
 
@@ -241,21 +243,17 @@ export default function ProjectsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-          <p className="text-muted-foreground">
-            Manage your construction projects
-          </p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        title="Projects"
+        description="Manage your construction projects"
+        icon={FolderOpen}
+        actions={canEdit ? (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add Project
           </Button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Filters and Controls */}
       <div className="flex items-center justify-between">

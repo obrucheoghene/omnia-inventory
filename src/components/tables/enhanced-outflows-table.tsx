@@ -55,6 +55,7 @@ import { Outflow } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import OutflowForm from "@/components/forms/outflow-form";
+import { PageHeader } from "@/components/ui/page-header";
 import FilterControls, {
   FilterValues,
 } from "@/components/filters/filter-controls";
@@ -506,56 +507,53 @@ export default function OutflowsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <TrendingDown className="h-6 w-6 text-red-600" />
-            Material Outflows
-          </h2>
-          <p className="text-muted-foreground">
+      <PageHeader
+        title="Material Outflows"
+        description={
+          <>
             Track materials distributed from the warehouse
             {hasActiveFilters && (
-              <span className="ml-2 text-sm">
-                • {filteredData.length} of {outflows?.length || 0} records
-              </span>
+              <span className="ml-2 text-xs">• {filteredData.length} of {outflows?.length || 0} records</span>
             )}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {canEdit && (
-            <Button onClick={handleCreate}>
-              <Plus className="mr-2 h-4 w-4" />
-              Record Outflow
+          </>
+        }
+        icon={TrendingDown}
+        actions={
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <Button onClick={handleCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Record Outflow
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleExport} className="gap-2">
+              <Download className="h-4 w-4" />
+              Export
             </Button>
-          )}
-          <Button variant="outline" onClick={handleExport} className="gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className={showFilters ? "bg-muted" : ""}
-          >
-            {showFilters ? (
-              <EyeOff className="h-4 w-4 mr-2" />
-            ) : (
-              <Eye className="h-4 w-4 mr-2" />
-            )}
-            Filters
-            {hasActiveFilters && (
-              <Badge
-                variant="secondary"
-                className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-              >
-                {getActiveFilterCount()}
-              </Badge>
-            )}
-          </Button>
-        </div>
-      </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "bg-muted" : ""}
+            >
+              {showFilters ? (
+                <EyeOff className="h-4 w-4 mr-2" />
+              ) : (
+                <Eye className="h-4 w-4 mr-2" />
+              )}
+              Filters
+              {hasActiveFilters && (
+                <Badge
+                  variant="secondary"
+                  className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                >
+                  {getActiveFilterCount()}
+                </Badge>
+              )}
+            </Button>
+          </div>
+        }
+      />
 
       {/* Filter Controls - Collapsible */}
       {showFilters && (

@@ -50,6 +50,7 @@ import { Inflow } from "@/lib/db/schema";
 import { canManageInventory } from "@/lib/auth/permissions";
 import { UserRole } from "@/types/auth";
 import InflowForm from "@/components/forms/inflow-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 
 export default function InflowsTable() {
@@ -281,24 +282,17 @@ export default function InflowsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-green-600" />
-            Material Inflows
-          </h2>
-          <p className="text-muted-foreground">
-            Track materials received into the warehouse
-          </p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        title="Material Inflows"
+        description="Track materials received into the warehouse"
+        icon={TrendingUp}
+        actions={canEdit ? (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Record Inflow
           </Button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Filters and Controls */}
       <div className="flex items-center justify-between">
