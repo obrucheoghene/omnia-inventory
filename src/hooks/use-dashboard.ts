@@ -15,6 +15,7 @@ interface DashboardData {
     minStockLevel: string | null;
     totalInflow: number;
     totalOutflow: number;
+    lastUnitPrice: number;
   }>;
   recentActivities: Array<{
     id: string;

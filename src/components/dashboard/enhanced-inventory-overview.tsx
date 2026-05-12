@@ -178,17 +178,17 @@ export default function EnhancedInventoryOverview() {
     // Recalculate summary based on filtered data
     const filteredSummary = {
       totalMaterials: filteredStockLevels.length,
-      lowStockMaterials: filteredLowStockAlerts.filter(
+      lowStockMaterials: filteredStockLevels.filter(
         (item) =>
           parseFloat(item.minStockLevel || "0") > 0 &&
-          item.currentStock <= parseFloat(item.minStockLevel || "0") &&
-          item.currentStock > 0
+          item.currentStock > 0 &&
+          item.currentStock <= parseFloat(item.minStockLevel || "0")
       ).length,
-      outOfStockMaterials: filteredLowStockAlerts.filter(
+      outOfStockMaterials: filteredStockLevels.filter(
         (item) => item.currentStock <= 0
       ).length,
       totalStockValue: filteredStockLevels.reduce(
-        (acc, item) => acc + item.currentStock * 0, // TODO: Add pricing
+        (acc, item) => acc + item.currentStock * (item.lastUnitPrice || 0),
         0
       ),
     };

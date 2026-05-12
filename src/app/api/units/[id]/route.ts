@@ -124,6 +124,7 @@ export async function PUT(
         name: validatedData.name,
         abbreviation: validatedData.abbreviation,
         description: validatedData.description,
+        ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
         updatedAt: new Date(),
       })
       .where(eq(units.id, id))

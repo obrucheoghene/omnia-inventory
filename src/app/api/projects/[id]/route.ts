@@ -98,6 +98,7 @@ export async function PUT(
       .set({
         name: validatedData.name,
         description: validatedData.description,
+        ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
         updatedAt: new Date(),
       })
       .where(eq(projects.id, id))

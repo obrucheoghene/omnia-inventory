@@ -24,6 +24,16 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -69,6 +79,7 @@ export default function EnhancedInflowsTable() {
   );
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // Table state
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -150,13 +161,18 @@ export default function EnhancedInflowsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this inflow record?")) {
-      try {
-        await deleteInflow.mutateAsync(id);
-      } catch (error) {
-        console.error("Error deleting inflow:", error);
-      }
+  const handleDelete = (id: string) => {
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteInflow.mutateAsync(deleteTarget);
+    } catch (error) {
+      console.error("Error deleting inflow:", error);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -589,6 +605,23 @@ export default function EnhancedInflowsTable() {
         inflow={selectedInflow}
         mode={formMode}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Inflow Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this inflow record? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

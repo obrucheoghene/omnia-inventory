@@ -147,6 +147,7 @@ export async function PUT(
       description: validatedData.description,
       categoryId: validatedData.categoryId,
       minStockLevel: validatedData.minStockLevel?.toString(),
+      ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
       updatedAt: new Date(),
     };
 

@@ -25,6 +25,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -61,6 +71,7 @@ export default function ProjectsTable() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
 
   // Table state
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -83,14 +94,19 @@ export default function ProjectsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (project: Project) => {
-    if (confirm("Are you sure you want to delete this project?")) {
-      try {
-        await deleteProject.mutateAsync(project.id);
-        projectToast.deleted(project.name);
-      } catch (error) {
-        console.error("Error deleting project:", error);
-      }
+  const handleDelete = (project: Project) => {
+    setDeleteTarget(project);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteProject.mutateAsync(deleteTarget.id);
+      projectToast.deleted(deleteTarget.name);
+    } catch (error) {
+      if (error instanceof Error) projectToast.error("delete", error.message);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -396,6 +412,23 @@ export default function ProjectsTable() {
         project={selectedProject}
         mode={formMode}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -26,6 +26,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -64,6 +74,7 @@ export default function UsersTable() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   // Table state
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -82,28 +93,23 @@ export default function UsersTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (user: User) => {
-    // Prevent self-deletion
+  const handleDelete = (user: User) => {
     if (user.id === session?.user?.id) {
       userToast.error("delete", "You cannot delete your own account");
       return;
     }
+    setDeleteTarget(user);
+  };
 
-    if (
-      confirm(
-        `Are you sure you want to delete user "${user.username}"? This action cannot be undone.`
-      )
-    ) {
-      try {
-        await deleteUser.mutateAsync(user.id);
-        userToast.deleted(user.username);
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        userToast.error(
-          "delete",
-          error instanceof Error ? error.message : "Unknown error"
-        );
-      }
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteUser.mutateAsync(deleteTarget.id);
+      userToast.deleted(deleteTarget.username);
+    } catch (error) {
+      userToast.error("delete", error instanceof Error ? error.message : "Unknown error");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -495,6 +501,23 @@ export default function UsersTable() {
         user={selectedUser}
         mode={formMode}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteTarget?.username}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

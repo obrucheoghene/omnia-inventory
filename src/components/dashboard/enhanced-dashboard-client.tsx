@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   BarChart3,
   TrendingUp,
-  Settings,
   RefreshCw,
   AlertTriangle,
 } from "lucide-react";
@@ -72,16 +71,6 @@ function DashboardSkeleton() {
   );
 }
 
-function NotificationBell() {
-  return (
-    <Button variant="ghost" size="sm">
-      <div className="relative">
-        {/* Bell icon placeholder */}
-        <div className="w-5 h-5 bg-muted rounded animate-pulse" />
-      </div>
-    </Button>
-  );
-}
 
 export default function EnhancedDashboardClient() {
   const { data: session } = useSession();
@@ -123,7 +112,6 @@ export default function EnhancedDashboardClient() {
 
           {/* Dashboard Actions */}
           <div className="flex items-center gap-3">
-            <NotificationBell />
             <Button
               variant="outline"
               size="sm"
@@ -134,10 +122,6 @@ export default function EnhancedDashboardClient() {
                 className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
               />
               Refresh
-            </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
             </Button>
           </div>
         </div>

@@ -8,6 +8,7 @@ export const createProjectSchema = z.object({
 
 export const updateProjectSchema = createProjectSchema.partial().extend({
   id: z.uuid(),
+  isActive: z.boolean().optional(),
 });
 
 // Category validation schemas
@@ -21,6 +22,7 @@ export const createCategorySchema = z.object({
 
 export const updateCategorySchema = createCategorySchema.partial().extend({
   id: z.uuid(),
+  isActive: z.boolean().optional(),
 });
 
 // Unit validation schemas
@@ -32,6 +34,7 @@ export const createUnitSchema = z.object({
 
 export const updateUnitSchema = createUnitSchema.partial().extend({
   id: z.uuid(),
+  isActive: z.boolean().optional(),
 });
 
 // Material validation schemas
@@ -52,6 +55,7 @@ export const createMaterialSchema = z.object({
 
 export const updateMaterialSchema = createMaterialSchema.partial().extend({
   id: z.uuid(),
+  isActive: z.boolean().optional(),
 });
 
 // Inflow validation schema with proper number handling

@@ -25,6 +25,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -64,6 +74,7 @@ export default function CategoriesTable() {
   );
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
 
   // Table state
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -84,18 +95,19 @@ export default function CategoriesTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (category: Category) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this category? This will also affect any materials using this category."
-      )
-    ) {
-      try {
-        await deleteCategory.mutateAsync(category.id);
-        categoryToast.deleted(category.name);
-      } catch (error) {
-        console.error("Error deleting category:", error);
-      }
+  const handleDelete = (category: Category) => {
+    setDeleteTarget(category);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteCategory.mutateAsync(deleteTarget.id);
+      categoryToast.deleted(deleteTarget.name);
+    } catch (error) {
+      if (error instanceof Error) categoryToast.error("delete", error.message);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -403,6 +415,23 @@ export default function CategoriesTable() {
         category={selectedCategory}
         mode={formMode}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This will also affect any materials using this category.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

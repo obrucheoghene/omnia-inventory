@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { createUnitSchema, CreateUnit } from "@/lib/validations";
 import { useCreateUnit, useUpdateUnit } from "@/hooks/use-units";
@@ -36,6 +37,7 @@ export default function UnitForm({
   mode,
 }: UnitFormProps) {
   const [error, setError] = useState("");
+  const [isActive, setIsActive] = useState(unit?.isActive ?? true);
   const { unit: unitToast } = useInventoryToast();
 
   const createUnit = useCreateUnit();
@@ -69,7 +71,7 @@ export default function UnitForm({
         await createUnit.mutateAsync(data);
         unitToast.created(data.name);
       } else if (unit) {
-        await updateUnit.mutateAsync({ ...data, id: unit.id });
+        await updateUnit.mutateAsync({ ...data, id: unit.id, isActive });
         unitToast.updated(unit.name);
       }
 
@@ -89,12 +91,14 @@ export default function UnitForm({
           abbreviation: unit.abbreviation || "",
           description: unit.description || "",
         });
+        setIsActive(unit.isActive ?? true);
       } else {
         reset({
           name: "",
           abbreviation: "",
           description: "",
         });
+        setIsActive(true);
       }
       setError("");
     }
@@ -190,6 +194,18 @@ export default function UnitForm({
               </div>
             </div>
           </div>
+
+          {mode === "edit" && (
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label>Status</Label>
+                <p className="text-xs text-muted-foreground">
+                  {isActive ? "Unit is active and available" : "Unit is inactive and hidden"}
+                </p>
+              </div>
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
+            </div>
+          )}
 
           {error && (
             <Alert variant="destructive">

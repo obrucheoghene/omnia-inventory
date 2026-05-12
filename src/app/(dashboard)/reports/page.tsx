@@ -477,7 +477,7 @@ export default function ReportsPage() {
               +{activitySummary.inflowQuantity}
             </div>
             <p className="text-xs text-muted-foreground">
-              -{activitySummary.outflowQuantity} units distributed
+              {activitySummary.outflowQuantity > 0 ? `-${activitySummary.outflowQuantity}` : "0"} units distributed
             </p>
           </CardContent>
         </Card>
@@ -569,7 +569,6 @@ export default function ReportsPage() {
                   <div className="space-y-2">
                     <div className="text-2xl font-bold text-green-600">
                       {(dashboardData?.summary?.totalMaterials || 0) -
-                        (dashboardData?.summary?.lowStockMaterials || 0) -
                         (dashboardData?.summary?.outOfStockMaterials || 0)}
                     </div>
                     <div className="text-xs text-muted-foreground">

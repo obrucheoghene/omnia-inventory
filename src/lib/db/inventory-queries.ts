@@ -67,6 +67,7 @@ export async function getCurrentStockLevels() {
       totalOutflow: sql<number>`COALESCE(SUM(CASE WHEN ${outflows.id} IS NOT NULL THEN ${outflows.quantity} ELSE 0 END), 0)`,
       currentStock: sql<number>`COALESCE(SUM(CASE WHEN ${inflows.id} IS NOT NULL THEN ${inflows.quantity} ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN ${outflows.id} IS NOT NULL THEN ${outflows.quantity} ELSE 0 END), 0)`,
       minStockLevel: materials.minStockLevel,
+      lastUnitPrice: sql<number>`COALESCE((SELECT CAST(unit_price AS NUMERIC) FROM inflows WHERE material_id = ${materials.id} AND unit_price IS NOT NULL ORDER BY delivery_date DESC LIMIT 1), 0)`,
     })
     .from(materials)
     .leftJoin(categories, eq(materials.categoryId, categories.id))

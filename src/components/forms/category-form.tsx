@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { createCategorySchema, CreateCategory } from "@/lib/validations";
 import { useCreateCategory, useUpdateCategory } from "@/hooks/use-categories";
@@ -36,6 +37,7 @@ export default function CategoryForm({
   mode,
 }: CategoryFormProps) {
   const [error, setError] = useState("");
+  const [isActive, setIsActive] = useState(category?.isActive ?? true);
 
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
@@ -77,7 +79,7 @@ export default function CategoryForm({
         await createCategory.mutateAsync(data);
         categoryToast.created(data.name);
       } else if (category) {
-        await updateCategory.mutateAsync({ ...data, id: category.id });
+        await updateCategory.mutateAsync({ ...data, id: category.id, isActive });
         categoryToast.updated(data.name);
       }
 
@@ -92,15 +94,11 @@ export default function CategoryForm({
   React.useEffect(() => {
     if (open) {
       if (category && mode === "edit") {
-        reset({
-          name: category.name,
-          description: category.description || "",
-        });
+        reset({ name: category.name, description: category.description || "" });
+        setIsActive(category.isActive ?? true);
       } else {
-        reset({
-          name: "",
-          description: "",
-        });
+        reset({ name: "", description: "" });
+        setIsActive(true);
       }
       setError("");
     }
@@ -149,6 +147,18 @@ export default function CategoryForm({
               </p>
             )}
           </div>
+
+          {mode === "edit" && (
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label>Status</Label>
+                <p className="text-xs text-muted-foreground">
+                  {isActive ? "Category is active and available" : "Category is inactive and hidden"}
+                </p>
+              </div>
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
+            </div>
+          )}
 
           {error && (
             <Alert variant="destructive">

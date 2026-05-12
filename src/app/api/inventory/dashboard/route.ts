@@ -34,9 +34,9 @@ export async function GET() {
         lowStockMaterials,
         outOfStockMaterials,
         totalStockValue: stockLevels.reduce(
-          (acc, item) => acc + item.currentStock * 0,
+          (acc, item) => acc + item.currentStock * (item.lastUnitPrice || 0),
           0
-        ), // TODO: Add pricing calculation
+        ),
       },
       stockLevels: stockLevels.slice(0, 20), // Top 20 for dashboard
       recentActivities,

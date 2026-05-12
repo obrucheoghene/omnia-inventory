@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { createProjectSchema, CreateProject } from "@/lib/validations";
 import { useCreateProject, useUpdateProject } from "@/hooks/use-projects";
@@ -36,6 +37,7 @@ export default function ProjectForm({
   mode,
 }: ProjectFormProps) {
   const [error, setError] = useState("");
+  const [isActive, setIsActive] = useState(project?.isActive ?? true);
   const { project: projectToast } = useInventoryToast();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
@@ -63,8 +65,10 @@ export default function ProjectForm({
     if (project) {
       setValue("name", project.name);
       if (project.description) setValue("description", project.description);
+      setIsActive(project.isActive ?? true);
     } else {
       reset();
+      setIsActive(true);
     }
   }, [project, reset, setValue]);
 
@@ -76,7 +80,7 @@ export default function ProjectForm({
         await createProject.mutateAsync(data);
         projectToast.created(data.name);
       } else if (project) {
-        await updateProject.mutateAsync({ ...data, id: project.id });
+        await updateProject.mutateAsync({ ...data, id: project.id, isActive });
         projectToast.updated(project.name);
       }
 
@@ -130,6 +134,18 @@ export default function ProjectForm({
               </p>
             )}
           </div>
+
+          {mode === "edit" && (
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label>Status</Label>
+                <p className="text-xs text-muted-foreground">
+                  {isActive ? "Project is active and visible" : "Project is inactive and hidden"}
+                </p>
+              </div>
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
+            </div>
+          )}
 
           {error && (
             <Alert variant="destructive">

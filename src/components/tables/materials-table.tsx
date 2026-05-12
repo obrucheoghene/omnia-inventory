@@ -25,6 +25,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -76,6 +86,7 @@ export default function MaterialsTable() {
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<Material | null>(null);
 
   // Table state
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -96,18 +107,19 @@ export default function MaterialsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (material: Material) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this material? This will also affect any inventory records using this material."
-      )
-    ) {
-      try {
-        await deleteMaterial.mutateAsync(material.id);
-        materialToast.deleted(material.name);
-      } catch (error) {
-        console.error("Error deleting material:", error);
-      }
+  const handleDelete = (material: Material) => {
+    setDeleteTarget(material);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMaterial.mutateAsync(deleteTarget.id);
+      materialToast.deleted(deleteTarget.name);
+    } catch (error) {
+      if (error instanceof Error) materialToast.error("delete", error.message);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -482,6 +494,23 @@ export default function MaterialsTable() {
         material={selectedMaterial}
         mode={formMode}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Material</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This will also affect any inventory records using this material.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

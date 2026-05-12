@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, X, Plus } from "lucide-react";
 import { createMaterialSchema, CreateMaterial } from "@/lib/validations";
@@ -47,6 +48,7 @@ export default function MaterialForm({
 }: MaterialFormProps) {
   const [error, setError] = useState("");
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
+  const [isActive, setIsActive] = useState(material?.isActive ?? true);
   const { material: materialToast } = useInventoryToast();
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial();
@@ -83,7 +85,7 @@ export default function MaterialForm({
         await createMaterial.mutateAsync(formData);
         materialToast.created(data.name);
       } else if (material) {
-        await updateMaterial.mutateAsync({ ...formData, id: material.id });
+        await updateMaterial.mutateAsync({ ...formData, id: material.id, isActive });
         materialToast.updated(material.name);
       }
 
@@ -125,8 +127,7 @@ export default function MaterialForm({
           unitIds: material.unitIds,
         });
         setSelectedUnits(material.unitIds);
-        // TODO: Load existing unit relationships for edit mode
-        // setSelectedUnits([]);
+        setIsActive(material.isActive ?? true);
       } else {
         reset({
           name: "",
@@ -136,6 +137,7 @@ export default function MaterialForm({
           unitIds: [],
         });
         setSelectedUnits([]);
+        setIsActive(true);
       }
       setError("");
     }
@@ -318,6 +320,18 @@ export default function MaterialForm({
               )}
             </div>
           </div>
+
+          {mode === "edit" && (
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label>Status</Label>
+                <p className="text-xs text-muted-foreground">
+                  {isActive ? "Material is active and available" : "Material is inactive and hidden"}
+                </p>
+              </div>
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
+            </div>
+          )}
 
           {error && (
             <Alert variant="destructive">

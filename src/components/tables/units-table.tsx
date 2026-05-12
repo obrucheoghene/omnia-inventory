@@ -25,6 +25,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -61,6 +71,7 @@ export default function UnitsTable() {
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [deleteTarget, setDeleteTarget] = useState<Unit | null>(null);
 
   // Table state
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -82,19 +93,19 @@ export default function UnitsTable() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (unit: Unit) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this unit? This will also affect any materials using this unit."
-      )
-    ) {
-      try {
-        await deleteUnit.mutateAsync(unit.id);
-        unitToast.deleted(unit.name);
-      } catch (error) {
-        if (error instanceof Error) unitToast.error("delete", error.message);
-        console.error("Error deleting unit:", error);
-      }
+  const handleDelete = (unit: Unit) => {
+    setDeleteTarget(unit);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteUnit.mutateAsync(deleteTarget.id);
+      unitToast.deleted(deleteTarget.name);
+    } catch (error) {
+      if (error instanceof Error) unitToast.error("delete", error.message);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -425,6 +436,23 @@ export default function UnitsTable() {
         unit={selectedUnit}
         mode={formMode}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Unit</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This will also affect any materials using this unit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
